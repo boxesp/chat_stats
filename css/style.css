@@ -17,9 +17,9 @@ body {
     margin: .5rem;
     padding: .75rem;
     border-radius: .5rem;
-    background-color: hsla(255, 90%, 5%, 0.95);
+    background-image: url('https://imgur.com/VSFWSBO'); /* Replace 'your-image-url.jpg' with the URL of your desired image */
+    background-size: cover; /* Adjusts the size of the background image to cover the entire element */
     overflow: hidden;
-
 }
 
 h1 {
