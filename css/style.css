@@ -96,7 +96,8 @@ p.topChatters {
     /*font-size: .9em;*/
     padding: 0 1px;
     content: "🔴";
-    vertical-align: middle; /* Adjust the vertical alignment */
+    position: relative;
+    top: -2px; /* Adjust the vertical position */
 }
 
 ul {
