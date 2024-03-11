@@ -61,7 +61,7 @@ p {
 
 p span {
     margin-left: auto;
-    font-weight: 600;
+    /*font-weight: 600;*/
 }
 
 p.topChatters {
@@ -73,7 +73,7 @@ p.topChatters {
 
 
 #channel-name {
-    font-weight: 700;
+    /*font-weight: 700;*/
     text-transform: uppercase;
     line-height: 1.25rem;
 }
