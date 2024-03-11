@@ -17,7 +17,7 @@ body {
     margin: .5rem;
     padding: .75rem;
     border-radius: .5rem;
-    background-image: url('https://i.imgur.com/HJ1xAXB.jpeg'); /* Replace 'your-image-url.jpg' with the URL of your desired image */
+    background-image: url('https://i.imgur.com/cKEryCS.png'); /* Replace 'your-image-url.jpg' with the URL of your desired image */
     background-size: cover; /* Adjusts the size of the background image to cover the entire element */
     overflow: hidden;
 }
