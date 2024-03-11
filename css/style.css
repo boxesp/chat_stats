@@ -95,8 +95,8 @@ p.topChatters {
 #channel-live.offline::before {
     /*font-size: .9em;*/
     padding: 0 1px;
-    line-height: 1.5rem;
     content: "🔴";
+    vertical-align: middle; /* Adjust the vertical alignment */
 }
 
 ul {
