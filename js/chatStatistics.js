@@ -407,5 +407,3 @@ async function connectWebSocket() {
   const initialStreamer = streamers[currentStreamerIndex];
   await connectToStreamer(initialStreamer);
 }
-
-connectWebSocket();
