@@ -1,7 +1,7 @@
 import { setSessionStartTime, calculateSessionDuration } from "./timer.js";
 
 const urlParams = new URLSearchParams(window.location.search);
-const channel = urlParams.get("channel") || "god";
+let channel = urlParams.get("channel") || "god"; // Set default channel
 const topListLength = urlParams.get("listLength") || 5;
 
 // channel name page element
@@ -168,7 +168,6 @@ function updateHTMLElements(
     topUsernamesElement.appendChild(listItem);
   });
 }
-
 
 // Make sure HTML elements are loaded before updating
 document.addEventListener("DOMContentLoaded", async function () {
@@ -348,7 +347,7 @@ function incrementMessageCount() {
   messageCount++;
 }
 
-// Update viewer count every 1 minutes
+// Update viewer count every 1 minute
 setInterval(fetchViewerCount, 1 * 60 * 1000);
 
 // update the session duration
@@ -364,5 +363,8 @@ function updateSessionDuration() {
   const sessionDurationElement = document.getElementById("session-duration");
   sessionDurationElement.textContent = sessionDuration;
 }
+
+// Periodically check online status
+setInterval(checkOnlineStatus, 30 * 1000);
 
 connectWebSocket();
