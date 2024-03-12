@@ -169,8 +169,14 @@ function updateHTMLElements(
   });
 }
 
-// Make sure HTML elements are loaded before updating
 document.addEventListener("DOMContentLoaded", async function () {
+  // Initialize WebSocket connection
+  connectWebSocket();
+
+  // Start checking online status
+  checkOnlineStatus();
+
+  // Add WebSocket message event listener
   kickWS.addEventListener("message", handleMessageEvent);
 });
 
@@ -366,5 +372,10 @@ function updateSessionDuration() {
 
 // Periodically check online status
 setInterval(checkOnlineStatus, 30 * 1000);
+
+// Add the checkOnlineStatus function here
+async function checkOnlineStatus() {
+  // Code for checking online status
+}
 
 connectWebSocket();
