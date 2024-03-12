@@ -365,4 +365,47 @@ function updateSessionDuration() {
   sessionDurationElement.textContent = sessionDuration;
 }
 
+async function checkStreamerStatus(channel) {
+  try {
+      const response = await fetch(`https://kick.com/api/v2/channels/${channel}`);
+      const data = await response.json();
+      return data.livestream && data.livestream.is_live;
+  } catch (error) {
+      console.error("Error checking streamer status:", error);
+      // Assume streamer is offline in case of error
+      return false;
+  }
+}
+
+let currentStreamerIndex = 0;
+const streamers = ['adinross', 'anotherstreamer', 'yetanotherstreamer'];
+
+async function switchToNextStreamer() {
+  currentStreamerIndex = (currentStreamerIndex + 1) % streamers.length;
+  const nextStreamer = streamers[currentStreamerIndex];
+  await connectToStreamer(nextStreamer);
+}
+
+async function connectToStreamer(channel) {
+  try {
+      const isLive = await checkStreamerStatus(channel);
+      if (isLive) {
+          // If the streamer is live, connect to the WebSocket
+          kickWS = new WebSocket(kickWSUri);
+          // Rest of the WebSocket connection logic...
+          console.log(`Connected to ${channel}`);
+      } else {
+          // If the streamer is offline, switch to the next streamer
+          await switchToNextStreamer();
+      }
+  } catch (error) {
+      console.error("Error connecting to streamer:", error);
+  }
+}
+
+async function connectWebSocket() {
+  const initialStreamer = streamers[currentStreamerIndex];
+  await connectToStreamer(initialStreamer);
+}
+
 connectWebSocket();
