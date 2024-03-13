@@ -362,7 +362,7 @@ function handleSenderData(sender) {
 }
 
 // Periodically check online status
-setInterval(checkOnlineStatus, 30 * 1000);
+setInterval(checkOnlineStatus, 5 * 1000);
 
 // Add the checkOnlineStatus function here
 async function checkOnlineStatus() {
