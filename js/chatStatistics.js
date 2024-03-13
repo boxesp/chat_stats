@@ -4,6 +4,7 @@ const urlParams = new URLSearchParams(window.location.search);
 const streamerList = ["xqc", "ludwig", "adinross"]; // List of streamers
 const topListLength = urlParams.get("listLength") || 5;
 let currentStreamerIndex = 0;
+let reconnectWebSocket = true; // Flag to control WebSocket reconnection
 
 // channel name page element
 const channelNameElement = document.getElementById("channel-name");
@@ -91,8 +92,8 @@ async function connectWebSocket() {
     // WebSocket close event listener
     kickWS.addEventListener("close", function close(event) {
       console.log("WebSocket connection closed:", event);
-      if (!event.wasClean)
-        // Attempt to reconnect only if it's not a clean close
+      if (!event.wasClean && reconnectWebSocket)
+        // Attempt to reconnect only if it's not a clean close and the flag is set
         setTimeout(connectWebSocket, 5000);
     });
   });
@@ -141,30 +142,34 @@ function updateHTMLElements(
   const twoOrLessElement = document.getElementById("2x-usernames");
 
   // Check if HTML elements exist before updating
-  // Update the HTML elements with the latest information
-  messageCountElement.textContent = messageCount.toLocaleString();
-  uniqueUsernamesElement.textContent = uniqueUsernamesCount.toLocaleString();
-  twoOrLessElement.textContent = twoOrLessCount.toLocaleString();
+  if (messageCountElement && uniqueUsernamesElement && topUsernamesElement && twoOrLessElement) {
+    // Update the HTML elements with the latest information
+    messageCountElement.textContent = messageCount.toLocaleString();
+    uniqueUsernamesElement.textContent = uniqueUsernamesCount.toLocaleString();
+    twoOrLessElement.textContent = twoOrLessCount.toLocaleString();
 
-  // Clear the existing list of top usernames
-  topUsernamesElement.innerHTML = "";
+    // Clear the existing list of top usernames
+    topUsernamesElement.innerHTML = "";
 
-  // Create and append <li> elements for each top username
-  topUsernames.forEach(({ username, count }) => {
-    const listItem = document.createElement("li");
+    // Create and append <li> elements for each top username
+    topUsernames.forEach(({ username, count }) => {
+      const listItem = document.createElement("li");
 
-    const usernameSpan = document.createElement("span");
-    usernameSpan.textContent = username;
-    usernameSpan.className = "username"; // Assign 'username' as the class name
-    listItem.appendChild(usernameSpan);
+      const usernameSpan = document.createElement("span");
+      usernameSpan.textContent = username;
+      usernameSpan.className = "username"; // Assign 'username' as the class name
+      listItem.appendChild(usernameSpan);
 
-    const countSpan = document.createElement("span");
-    countSpan.textContent = count ? count.toLocaleString() : "";
-    countSpan.className = "messageCount"; // Assign 'messageCount' as the class name
-    listItem.appendChild(countSpan);
+      const countSpan = document.createElement("span");
+      countSpan.textContent = count ? count.toLocaleString() : "";
+      countSpan.className = "messageCount"; // Assign 'messageCount' as the class name
+      listItem.appendChild(countSpan);
 
-    topUsernamesElement.appendChild(listItem);
-  });
+      topUsernamesElement.appendChild(listItem);
+    });
+  } else {
+    console.error("One or more HTML elements for updating are missing.");
+  }
 }
 
 // Make sure HTML elements are loaded before updating
