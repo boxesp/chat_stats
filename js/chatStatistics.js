@@ -351,6 +351,10 @@ function switchToNextStreamer() {
   currentStreamerIndex = (currentStreamerIndex + 1) % streamerChannels.length;
   // Set the channel to the next streamer
   channel = streamerChannels[currentStreamerIndex];
+  
+  // Update the channel name element
+  channelNameElement.textContent = channel; // Assuming channelNameElement is defined globally
+  
   // Then, reconnect WebSocket with the new streamer
   connectWebSocket();
 }
