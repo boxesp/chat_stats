@@ -238,11 +238,6 @@ function getSortedUsernames() {
   return Array.from(topUsernames.entries()).sort((a, b) => b[1] - a[1]);
 }
 
-// increment the message count
-function incrementMessageCount() {
-  messageCount++;
-}
-
 // Update viewer count every 1 minute
 setInterval(fetchViewerCount, 1 * 60 * 1000);
 
