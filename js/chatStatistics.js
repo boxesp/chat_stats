@@ -45,7 +45,7 @@ function connectWebSocket() {
   // WebSocket open event listener
   kickWS.addEventListener("open", async function open() {
     const userData = await fetch(
-      `https://kick.com/api/v2/channels/${channel}`
+      `https://kick.com/api/v2/channels/${streamerList[currentStreamerIndex]}`
     ).then((response) => response.json());
 
     kickWS.send(
@@ -275,6 +275,13 @@ function updateSessionDuration() {
   const sessionDurationElement = document.getElementById("session-duration");
   sessionDurationElement.textContent = sessionDuration;
 }
+
+console.log(
+  "Connected to Kick.com Streamer Chat: " +
+  streamerList[currentStreamerIndex] +
+  " Chatroom ID: " +
+  userData.chatroom.id
+);
 
 async function fetchViewerCount() {
   try {
