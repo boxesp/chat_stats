@@ -369,11 +369,6 @@ function resetStatistics() {
   updateHTMLElements(0, 0, [], 0); // Clear HTML elements
 }
 
-// Increment the message count
-function incrementMessageCount() {
-  messageCount++;
-}
-
 // Update viewer count
 async function updateViewerCount(viewerCount) {
   try {
