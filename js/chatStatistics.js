@@ -288,13 +288,11 @@ function switchToNextStreamer() {
 // Function to reset statistics
 function resetStatistics() {
   messageCount = 0;
-  totalViewerCount = 0;
-  peakViewerCount = 0;
-  updateCount = 0;
-  twoOrLessCount = 0;
   uniqueUsernames.clear();
   topUsernames.clear();
-  updateHTMLElements(0, 0, [], 0); // Clear HTML elements
+  messageCountElement.textContent = "0";
+  uniqueUsernamesElement.textContent = "0";
+  topUsernamesElement.innerHTML = "";
 }
 
 // Update viewer count
@@ -384,14 +382,17 @@ function incrementUsernameCount(senderUniqueId) {
 
 // Update top usernames
 function updateTopUsernames() {
-  const sortedUsernames = getSortedUsernames();
-  const topUsernamesWithCount = getTopUsernamesWithCount(sortedUsernames);
-  updateHTMLElements(
-    messageCount,
-    uniqueUsernamesCount, // Update unique chatters count
-    topUsernamesWithCount,
-    twoOrLessCount // Update chatters with less than 3 messages count
-  );
+  const sortedUsernames = Array.from(topUsernames.entries()).sort((a, b) => b[1] - a[1]);
+  topUsernamesElement.innerHTML = "";
+  sortedUsernames.slice(0, topListLength).forEach(([senderUniqueId, count]) => {
+    const listItem = document.createElement("li");
+    const username = senderUniqueId.split("-")[1];
+    const countSpan = document.createElement("span");
+    countSpan.textContent = count.toLocaleString();
+    listItem.textContent = `${username}: `;
+    listItem.appendChild(countSpan);
+    topUsernamesElement.appendChild(listItem);
+  });
 }
 
 // Increment the message count
