@@ -314,28 +314,6 @@ channelNameElement.textContent = streamerList[currentStreamerIndex];
 // Update the viewer count when a new chat message is received
 updateViewerCount(messageData.viewer_count);
 
-// Update the viewer count function to handle live viewers, average viewers, and peak viewers
-function updateViewerCount(viewerCount) {
-  const liveViewersElement = document.getElementById("live-viewers");
-  const averageViewersElement = document.getElementById("average-viewers");
-
-  if (viewerCount !== undefined) {
-    // Update live viewers count
-    liveViewersElement.textContent = viewerCount.toLocaleString();
-
-    // Update average viewers count (if available)
-    const averageViewerCount = calculateAverageViewerCount(viewerCount);
-    averageViewersElement.textContent = averageViewerCount.toLocaleString();
-
-    // Update peak viewer count
-    updatePeakViewerCount(viewerCount);
-  } else {
-    // Handle undefined viewer count (e.g., when stream is offline)
-    liveViewersElement.textContent = "0";
-    averageViewersElement.textContent = "0";
-  }
-}
-
 // Calculate average viewer count based on current and total viewer count (placeholder implementation)
 function calculateAverageViewerCount(currentViewerCount) {
   // You can implement your logic to calculate average viewer count here
