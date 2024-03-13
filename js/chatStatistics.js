@@ -321,6 +321,9 @@ async function fetchViewerCount() {
       updateViewerCount(0);
       // Update the is_live status to false
       updateIsLiveStatus(false);
+
+      // Move to the next streamer
+      await switchToNextStreamer();
     }
   } catch (error) {
     console.error("Error fetching viewer count:", error);
@@ -329,4 +332,19 @@ async function fetchViewerCount() {
   if (kickWS !== null) {
     kickWS.addEventListener("message", handleMessageEvent);
   }
+}
+
+// Function to handle switching to the next streamer
+async function switchToNextStreamer() {
+  // Increment the current streamer index
+  currentStreamerIndex = (currentStreamerIndex + 1) % streamerList.length;
+
+  // Update the channel name display
+  channelNameElement.textContent = streamerList[currentStreamerIndex];
+
+  // Update the WebSocket URI for the new streamer
+  kickWSUri = `wss://ws-us2.pusher.com/app/eb1d5f283081a78b932c?protocol=7&client=js&version=7.4.0&flash=false&channel=${streamerList[currentStreamerIndex]}`;
+
+  // Connect WebSocket for the new streamer
+  await connectWebSocket();
 }
