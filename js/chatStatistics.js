@@ -36,17 +36,19 @@ const excludedKickBots = [
   "kickbot"
 ];
 
-// kick websocket uri
+// WebSocket URI
 const kickWSUri =
   "wss://ws-us2.pusher.com/app/eb1d5f283081a78b932c?protocol=7&client=js&version=7.4.0&flash=false";
 let kickWS = null; // WebSocket instance
 
+// Function to connect WebSocket
 function connectWebSocket() {
-  if (kickWS && kickWS.readyState === WebSocket.OPEN) {
-    // If WebSocket connection is already open, do nothing
-    return;
+  // Close existing WebSocket connection if it exists
+  if (kickWS && kickWS.readyState !== WebSocket.CLOSED) {
+    kickWS.close();
   }
 
+  // Create new WebSocket instance
   kickWS = new WebSocket(kickWSUri);
 
   // WebSocket open event listener
@@ -204,44 +206,30 @@ function updateSessionDuration() {
 // Periodically check online status
 setInterval(checkOnlineStatus, 30 * 1000);
 
-// Add a function to switch to the next streamer
+// Function to switch to the next streamer
 function switchToNextStreamer() {
-  // Logic to switch to the next streamer goes here
   console.log('Switching to the next streamer...');
-  
   // Close the current WebSocket connection if it exists
   if (kickWS) {
     kickWS.close();
   }
-  
+
   // Reset statistics
   resetStatistics();
-  
+
   // Increment the current streamer index
   currentStreamerIndex = (currentStreamerIndex + 1) % streamerChannels.length;
   // Set the channel to the next streamer
   channel = streamerChannels[currentStreamerIndex];
-  
+
   // Update the channel name element
-  channelNameElement.textContent = channel; // Assuming channelNameElement is defined globally
-  
+  channelNameElement.textContent = channel;
+
   // Then, reconnect WebSocket with the new streamer
   connectWebSocket();
 }
 
-// handle the message sender data
-function handleSenderData(sender) {
-  const senderId = sender.id;
-  const senderUsername = sender.username;
-  const senderUniqueId = createSenderUniqueId(senderId, senderUsername);
-  addSenderUniqueId(senderUniqueId);
-  incrementUsernameCount(senderUniqueId);
-}
-
-// Periodically check online status
-setInterval(checkOnlineStatus, 5 * 1000);
-
-// Add the checkOnlineStatus function here
+// Function to check online status
 async function checkOnlineStatus() {
   try {
     const response = await fetch(`https://kick.com/api/v2/channels/${channel}`);
