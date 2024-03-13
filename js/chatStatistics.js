@@ -5,7 +5,7 @@ let channel = urlParams.get("channel") || "xqc"; // Set default channel
 const topListLength = urlParams.get("listLength") || 5;
 
 // List of streamer channels
-const streamerChannels = ["adinross", "xxxxxxxxxx", "rrrrrrrr"];
+const streamerChannels = ["adinross", "5555555", "rrrrrrrr"];
 let currentStreamerIndex = 0;
 
 // channel name page element
