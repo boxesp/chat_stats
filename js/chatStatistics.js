@@ -252,16 +252,6 @@ function switchToNextStreamer() {
   connectWebSocket();
 }
 
-// Function to reset statistics
-function resetStatistics() {
-  messageCount = 0;
-  uniqueUsernames.clear();
-  topUsernames.clear();
-  messageCountElement.textContent = "0";
-  uniqueUsernamesElement.textContent = "0";
-  topUsernamesElement.innerHTML = "";
-}
-
 // handle the message sender data
 function handleSenderData(sender) {
   const senderId = sender.id;
