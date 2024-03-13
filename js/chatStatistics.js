@@ -192,27 +192,33 @@ async function fetchViewerCount() {
     }
     const data = await response.json();
     if (!data || !data.livestream) {
-      throw new Error('Invalid response format');
+      throw new Error('Invalid response format or missing livestream data');
     }
-    const viewerCount = data.livestream.viewer_count || 0;
-    const isLive = data.livestream.is_live || false;
 
-    // Update the viewer count
-    updateViewerCount(viewerCount);
+    // Additional check to ensure data.livestream is not null
+    if (data.livestream !== null) {
+      const viewerCount = data.livestream.viewer_count || 0;
+      const isLive = data.livestream.is_live || false;
 
-    // Update the is_live status
-    updateIsLiveStatus(isLive);
+      // Update the viewer count
+      updateViewerCount(viewerCount);
 
-    // Check if the viewer count is zero and the channel is not live
-    if (viewerCount === 0 && !isLive) {
-      // Fetch a new channel from your list
-      const newChannel = await fetchNewChannel();
-      // If a new channel is found, switch to it
-      if (newChannel) {
-        channel = newChannel;
-        console.log("Switching to new channel: " + channel);
-        connectWebSocket(); // Reconnect WebSocket with the new channel
+      // Update the is_live status
+      updateIsLiveStatus(isLive);
+
+      // Check if the viewer count is zero and the channel is not live
+      if (viewerCount === 0 && !isLive) {
+        // Fetch a new channel from your list
+        const newChannel = await fetchNewChannel();
+        // If a new channel is found, switch to it
+        if (newChannel) {
+          channel = newChannel;
+          console.log("Switching to new channel: " + channel);
+          connectWebSocket(); // Reconnect WebSocket with the new channel
+        }
       }
+    } else {
+      console.error('Livestream data is null');
     }
   } catch (error) {
     console.error("Error fetching viewer count:", error);
