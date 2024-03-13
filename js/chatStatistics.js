@@ -1,12 +1,12 @@
 import { setSessionStartTime, calculateSessionDuration } from "./timer.js";
 
 const urlParams = new URLSearchParams(window.location.search);
-const channel = urlParams.get("channel") || "iziprime";
+const streamers = urlParams.getAll("channel") || ["adinross", "iziprime"]; // List of streamers
 const topListLength = urlParams.get("listLength") || 5;
 
 // channel name page element
 const channelNameElement = document.getElementById("channel-name");
-channelNameElement.textContent = String(channel);
+let currentChannelIndex = 0;
 
 let messageCount = 0;
 const uniqueUsernames = new Set();
@@ -42,8 +42,9 @@ function connectWebSocket() {
 
   // WebSocket open event listener
   kickWS.addEventListener("open", async function open() {
+    const currentChannel = streamers[currentChannelIndex];
     const userData = await fetch(
-      `https://kick.com/api/v2/channels/${channel}`
+      `https://kick.com/api/v2/channels/${currentChannel}`
     ).then((response) => response.json());
 
     kickWS.send(
@@ -54,7 +55,7 @@ function connectWebSocket() {
     );
     console.log(
       "Connected to Kick.com Streamer Chat: " +
-        channel +
+        currentChannel +
         " Chatroom ID: " +
         userData.chatroom.id
     );
@@ -163,7 +164,7 @@ function updateViewerCount(viewerCount) {
   viewerAverageElement.textContent = Math.round(averageViewerCount).toLocaleString();
   // call peak viewer count check
   updatePeakViewerCount(viewerCount);
-  console.log("Current Viewer Count for " + channel + ": " + viewerCount);
+  console.log("Current Viewer Count for " + streamers[currentChannelIndex] + ": " + viewerCount);
 }
 
 function updatePeakViewerCount(viewerCount) {
@@ -181,7 +182,7 @@ peakViewersElement.textContent = peakViewerCount;
 // Fetch the viewer count and check is_live status
 async function fetchViewerCount() {
   try {
-    const response = await fetch(`https://kick.com/api/v2/channels/${channel}`);
+    const response = await fetch(`https://kick.com/api/v2/channels/${streamers[currentChannelIndex]}`);
     const data = await response.json();
 
     const viewerCount = data.livestream.viewer_count || 0;
@@ -209,7 +210,22 @@ function updateIsLiveStatus(isLive) {
     channelLiveElement.textContent = "Offline";
     channelLiveElement.classList.add("offline");
     channelLiveElement.classList.remove("live");
+    // Move to the next streamer if the current one is offline
+    moveNextStreamer();
   }
+}
+
+// Function to move to the next streamer in the list
+function moveNextStreamer() {
+  currentChannelIndex = (currentChannelIndex + 1) % streamers.length;
+  const nextChannel = streamers[currentChannelIndex];
+  console.log("Switching to the next streamer: " + nextChannel);
+  // Close the existing WebSocket connection
+  if (kickWS && kickWS.readyState === WebSocket.OPEN) {
+    kickWS.close();
+  }
+  // Re-establish connection for the next streamer
+  connectWebSocket();
 }
 
 // create a unique ID for the sender
