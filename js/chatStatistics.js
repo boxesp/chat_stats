@@ -363,3 +363,10 @@ try {
 console.log(`Switching to streamer: ${streamerList[currentStreamerIndex]}`);
 channelNameElement.textContent = streamerList[currentStreamerIndex];
 
+// Define the updateViewerCount function
+function updateViewerCount(viewerCount) {
+  // Your code to update viewer count
+}
+
+// Update the viewer count when a new chat message is received
+updateViewerCount(messageData.viewer_count);
