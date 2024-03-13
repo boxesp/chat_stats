@@ -43,6 +43,7 @@ function connectWebSocket() {
 
   // WebSocket open event listener
   kickWS.addEventListener("open", async function open() {
+    // Only send messages or perform actions once the WebSocket connection is open
     const userData = await fetch(
       `https://kick.com/api/v2/channels/${channel}`
     ).then((response) => response.json());
