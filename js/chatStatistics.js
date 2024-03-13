@@ -171,31 +171,6 @@ function handleSenderData(sender) {
   incrementUsernameCount(senderUniqueId);
 }
 
-async function updateViewerCount(viewerCount) {
-  try {
-    totalViewerCount += viewerCount;
-
-    // Increment update count
-    updateCount++;
-
-    // Calculate new average viewer count
-    const averageViewerCount = updateCount > 0 ? totalViewerCount / updateCount : 0;
-
-    // Update UI with viewer count
-    const viewerCountElement = document.getElementById("viewer-count");
-    viewerCountElement.textContent = viewerCount ? viewerCount.toLocaleString() : "0";
-
-    // Update UI with average viewer count
-    const viewerAverageElement = document.getElementById("viewer-average");
-    viewerAverageElement.textContent = Math.round(averageViewerCount).toLocaleString();
-
-    // Update peak viewer count
-    await updatePeakViewerCount(viewerCount);
-  } catch (error) {
-    console.error('Error updating viewer count:', error);
-  }
-}
-
 // set initial peak viewers
 const peakViewersElement = document.getElementById("viewer-peak");
 peakViewersElement.textContent = peakViewerCount;
