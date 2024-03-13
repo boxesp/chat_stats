@@ -1,12 +1,8 @@
 import { setSessionStartTime, calculateSessionDuration } from "./timer.js";
 
 const urlParams = new URLSearchParams(window.location.search);
-const channel = urlParams.get("channel") || "iziprime";
+let channel = urlParams.get("channel") || "iziprime";
 const topListLength = urlParams.get("listLength") || 5;
-
-// channel name page element
-const channelNameElement = document.getElementById("channel-name");
-channelNameElement.textContent = String(channel);
 
 let messageCount = 0;
 const uniqueUsernames = new Set();
@@ -192,101 +188,63 @@ async function fetchViewerCount() {
 
     // Update the is_live status
     updateIsLiveStatus(isLive);
-  } catch (error) {
-    console.error("Error fetching viewer count:", error);
-  }
-}
 
-// Update the is_live status display
-function updateIsLiveStatus(isLive) {
-  const channelLiveElement = document.getElementById("channel-live");
-
-  if (isLive) {
-    channelLiveElement.textContent = "Live";
-    channelLiveElement.classList.add("live");
-    channelLiveElement.classList.remove("offline");
-  } else {
-    channelLiveElement.textContent = "Offline";
-    channelLiveElement.classList.add("offline");
-    channelLiveElement.classList.remove("live");
-  }
-}
-
-// create a unique ID for the sender
-function createSenderUniqueId(id, username) {
-  return `${id}-${username}`;
-}
-
-// add the sender unique ID to the set of unique usernames
-function addSenderUniqueId(senderUniqueId) {
-  uniqueUsernames.add(senderUniqueId);
-}
-
-// increment the username count in the topUsernames map
-function incrementUsernameCount(senderUniqueId) {
-  if (topUsernames.has(senderUniqueId)) {
-    topUsernames.set(senderUniqueId, topUsernames.get(senderUniqueId) + 1);
-  } else {
-    topUsernames.set(senderUniqueId, 1);
-  }
-}
-
-// update top usernames
-function updateTopUsernames() {
-  const sortedUsernames = getSortedUsernames();
-  const topUsernamesWithCount = getTopUsernamesWithCount(sortedUsernames);
-  const twoOrLessCount = getTwoOrLessCount();
-  updateHTMLElements(
-    messageCount,
-    uniqueUsernames.size,
-    topUsernamesWithCount,
-    twoOrLessCount
-  );
-}
-
-// get the top usernames with their message count
-function getTopUsernamesWithCount(sortedUsernames) {
-  return sortedUsernames
-    .slice(0, topListLength)
-    .map(([senderUniqueId, count]) => ({
-      username: senderUniqueId.split("-")[1],
-      count: count,
-    }));
-}
-
-function getTwoOrLessCount() {
-  console.log(topUsernames);
-  let twoOrLessCount = 0;
-  for (let [senderUniqueId, count] of topUsernames) {
-    if (count <= 2) {
-      twoOrLessCount++;
-      
+    // Check if the viewer count is zero and the channel is not live
+    if (viewerCount === 0 && !isLive) {
+      // Fetch a new channel from your list
+      const newChannel = await fetchNewChannel();
+      // If a new channel is found, switch to it
+      if (newChannel) {
+        channel = newChannel;
+        console.log("Switching to new channel: " + channel);
+        connectWebSocket(); // Reconnect WebSocket with the new channel
+      }
     }
+  } catch (error) {
+    console.error("Error fetching viewer count:", error
+    );
   }
-  return twoOrLessCount;
+  
+  // Function to fetch a new channel from your list
+  async function fetchNewChannel() {
+    // List of channels to try
+    const channelsToTry = ["channel1", "channel2", "channel3"]; // Add your list of channels here
+    for (const newChannel of channelsToTry) {
+      try {
+        const response = await fetch(`https://kick.com/api/v2/channels/${newChannel}`);
+        const data = await response.json();
+        const isLive = data.livestream.is_live || false;
+        const viewerCount = data.livestream.viewer_count || 0;
+        if (isLive && viewerCount > 0) {
+          return newChannel; // Return the first live channel found with non-zero viewers
+        }
+      } catch (error) {
+        console.error("Error fetching new channel:", error);
+      }
+    }
+    return null; // Return null if no live channel found
+  }
+  
+  // Your existing code here...
+  
+  // Fetch initial viewer count immediately after connecting WebSocket
+  kickWS.addEventListener("open", async function open() {
+    // Your existing code here...
+    await fetchViewerCount();
+  });
+  
+  // Update viewer count every 1 minutes
+  setInterval(fetchViewerCount, 1 * 60 * 1000);
+  
+  // update the session duration
+  setInterval(updateSessionDuration, 1000);
+  
+  function updateSessionDuration() {
+    const sessionDuration = calculateSessionDuration();
+    const sessionDurationElement = document.getElementById("session-duration");
+    sessionDurationElement.textContent = sessionDuration;
+  }
+  
+  // establish initial Kick WebSocket connection
+  connectWebSocket();
 }
-
-// sort top usernames by count in descending order
-function getSortedUsernames() {
-  return Array.from(topUsernames.entries()).sort((a, b) => b[1] - a[1]);
-}
-
-// increment the message count
-function incrementMessageCount() {
-  messageCount++;
-}
-
-// Update viewer count every 1 minutes
-setInterval(fetchViewerCount, 1 * 60 * 1000);
-
-// update the session duration
-setInterval(updateSessionDuration, 1000);
-
-function updateSessionDuration() {
-  const sessionDuration = calculateSessionDuration();
-  const sessionDurationElement = document.getElementById("session-duration");
-  sessionDurationElement.textContent = sessionDuration;
-}
-
-// establish initial Kick WebSocket connection
-connectWebSocket();
