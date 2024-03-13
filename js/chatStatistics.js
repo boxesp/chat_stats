@@ -267,16 +267,17 @@ function incrementMessageCount() {
   messageCount++;
 }
 
-// Update viewer count every 1 minutes
+// Update viewer count every 1 minute
 setInterval(fetchViewerCount, 1 * 60 * 1000);
 
-// update the session duration
+// Update the session duration
 setInterval(updateSessionDuration, 1000);
 
-function updateSessionDuration() {
-  const sessionDuration = calculateSessionDuration();
-  const sessionDurationElement = document.getElementById("session-duration");
-  sessionDurationElement.textContent = sessionDuration;
+// Function to handle switching to the next streamer
+async function switchToNextStreamer() {
+  currentStreamerIndex = (currentStreamerIndex + 1) % streamerList.length;
+  channelNameElement.textContent = streamerList[currentStreamerIndex];
+  await connectWebSocket(); // Connect WebSocket for the new streamer
 }
 
 async function fetchViewerCount() {
@@ -297,8 +298,7 @@ async function fetchViewerCount() {
 
       if (!isLive) {
         // Move to the next streamer if the current one is offline
-        currentStreamerIndex = (currentStreamerIndex + 1) % streamerList.length;
-        connectWebSocket(); // Reconnect WebSocket for the new streamer
+        await switchToNextStreamer();
       }
     } else {
       // If 'livestream' object doesn't exist or 'viewer_count' is undefined, set viewer count to 0
@@ -309,8 +309,63 @@ async function fetchViewerCount() {
   } catch (error) {
     console.error("Error fetching viewer count:", error);
   }
-  
+
   if (kickWS !== null) {
     kickWS.addEventListener("message", handleMessageEvent);
   }
 }
+
+// Function to establish a WebSocket connection
+async function connectWebSocket() {
+  kickWS = new WebSocket(
+    `wss://ws-us2.pusher.com/app/eb1d5f283081a78b932c?protocol=7&client=js&version=7.4.0&flash=false&channel=${streamerList[currentStreamerIndex]}`
+  );
+
+  return new Promise((resolve, reject) => {
+    // WebSocket open event listener
+    kickWS.addEventListener("open", async function open() {
+      try {
+        const userData = await fetch(
+          `https://kick.com/api/v2/channels/${streamerList[currentStreamerIndex]}`
+        ).then((response) => response.json());
+
+        kickWS.send(
+          JSON.stringify({
+            event: "pusher:subscribe",
+            data: { auth: "", channel: `chatrooms.${userData.chatroom.id}.v2` },
+          })
+        );
+        console.log(
+          "Connected to Kick.com Streamer Chat: " +
+          streamerList[currentStreamerIndex] +
+          " Chatroom ID: " +
+          userData.chatroom.id
+        );
+        setSessionStartTime(); // Set the session start time when the WebSocket connection opens
+        updateIsLiveStatus();
+        await fetchViewerCount();
+        resolve(); // Resolve the promise once WebSocket connection is established
+      } catch (error) {
+        reject(error); // Reject the promise if there's an error
+      }
+    });
+
+    // WebSocket error event listener
+    kickWS.addEventListener("error", function error(event) {
+      console.error("WebSocket error:", event);
+      reject(event); // Reject the promise if there's an error
+    });
+
+    // WebSocket close event listener
+    kickWS.addEventListener("close", function close(event) {
+      console.log("WebSocket connection closed:", event);
+      // Attempt to reconnect after a delay
+      setTimeout(connectWebSocket, 5000);
+    });
+  });
+}
+
+// Make sure HTML elements are loaded before updating
+document.addEventListener("DOMContentLoaded", async function () {
+  await connectWebSocket(); // Connect WebSocket when DOM content is loaded
+});
