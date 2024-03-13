@@ -112,13 +112,7 @@ function handleMessageEvent(event) {
   }
 }
 
-// Update the HTML elements with the latest information
-function updateHTMLElements(
-  messageCount,
-  uniqueUsernamesCount,
-  topUsernames,
-  twoOrLessCount
-) {
+{
   // Get the HTML elements for displaying the information
   const messageCountElement = document.getElementById("message-count");
   const uniqueUsernamesElement = document.getElementById("unique-usernames");
