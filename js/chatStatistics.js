@@ -325,36 +325,38 @@ function updateSessionDuration() {
 // Periodically check online status
 setInterval(checkOnlineStatus, 30 * 1000);
 
-// Add a function to switch to the next streamer
-async function switchToNextStreamer() {
-  // Logic to switch to the next streamer goes here
-  console.log('Switching to the next streamer...');
-  
-  // Increment the current streamer index
-  currentStreamerIndex = (currentStreamerIndex + 1) % streamerChannels.length;
-  
-  // Loop through the streamer channels until a live streamer is found
-  for (let i = 0; i < streamerChannels.length; i++) {
-    // Set the channel to the next streamer
-    channel = streamerChannels[currentStreamerIndex];
-    
-    // Check if the streamer is live
+// Add the checkOnlineStatus function here
+async function checkOnlineStatus() {
+  try {
     const response = await fetch(`https://kick.com/api/v2/channels/${channel}`);
     const data = await response.json();
     const isLive = data.livestream && data.livestream.is_live;
-    
-    if (isLive) {
-      console.log(`Switched to live streamer: ${channel}`);
-      // Update the channel name element
-      channelNameElement.textContent = channel; // Assuming channelNameElement is defined globally
-      // Reconnect WebSocket with the new live streamer
-      connectWebSocket();
-      return; // Exit the loop if a live streamer is found
+
+    if (!isLive) {
+      switchToNextStreamer(); // Switch to the next streamer if offline
     } else {
-      // Move to the next streamer index
-      currentStreamerIndex = (currentStreamerIndex + 1) % streamerChannels.length;
+      updateViewerCount(data.livestream.viewer_count);
+      updateIsLiveStatus(true);
     }
+  } catch (error) {
+    console.error("Error checking online status:", error);
   }
-  
-  console.log('No live streamers found.');
 }
+
+// Add a function to switch to the next streamer
+function switchToNextStreamer() {
+  // Logic to switch to the next streamer goes here
+  console.log('Switching to the next streamer...');
+  // Increment the current streamer index
+  currentStreamerIndex = (currentStreamerIndex + 1) % streamerChannels.length;
+  // Set the channel to the next streamer
+  channel = streamerChannels[currentStreamerIndex];
+  
+  // Update the channel name element
+  channelNameElement.textContent = channel; // Assuming channelNameElement is defined globally
+  
+  // Then, reconnect WebSocket with the new streamer
+  connectWebSocket();
+}
+
+connectWebSocket();
