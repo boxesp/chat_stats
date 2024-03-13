@@ -370,3 +370,65 @@ function updateViewerCount(viewerCount) {
 
 // Update the viewer count when a new chat message is received
 updateViewerCount(messageData.viewer_count);
+
+// Update the viewer count function to handle live viewers, average viewers, and peak viewers
+function updateViewerCount(viewerCount) {
+  const liveViewersElement = document.getElementById("live-viewers");
+  const averageViewersElement = document.getElementById("average-viewers");
+
+  if (viewerCount !== undefined) {
+    // Update live viewers count
+    liveViewersElement.textContent = viewerCount.toLocaleString();
+
+    // Update average viewers count (if available)
+    const averageViewerCount = calculateAverageViewerCount(viewerCount);
+    averageViewersElement.textContent = averageViewerCount.toLocaleString();
+
+    // Update peak viewer count
+    updatePeakViewerCount(viewerCount);
+  } else {
+    // Handle undefined viewer count (e.g., when stream is offline)
+    liveViewersElement.textContent = "0";
+    averageViewersElement.textContent = "0";
+  }
+}
+
+// Calculate average viewer count based on current and total viewer count (placeholder implementation)
+function calculateAverageViewerCount(currentViewerCount) {
+  // You can implement your logic to calculate average viewer count here
+  return currentViewerCount * 0.75; // Placeholder implementation
+}
+
+// Function to update peak viewer count
+function updatePeakViewerCount(viewerCount) {
+  if (viewerCount > peakViewerCount) {
+    peakViewerCount = viewerCount;
+    const peakViewersElement = document.getElementById("viewer-peak");
+    peakViewersElement.textContent = peakViewerCount.toLocaleString();
+  }
+}
+
+// Call updateViewerCount function with initial value when DOM content is loaded
+document.addEventListener("DOMContentLoaded", async function () {
+  await fetchViewerCount(); // Fetch initial viewer count
+});
+
+// Add error handling to fetchViewerCount function
+async function fetchViewerCount() {
+  try {
+    const response = await fetch(`https://kick.com/api/v2/channels/${streamerList[currentStreamerIndex]}`);
+    const data = await response.json();
+
+    // Extract viewer count from API response and update
+    const viewerCount = data.livestream && data.livestream.viewer_count !== undefined ? data.livestream.viewer_count : 0;
+    updateViewerCount(viewerCount);
+
+    // Continue WebSocket connection after updating viewer count
+    if (kickWS !== null) {
+      kickWS.addEventListener("message", handleMessageEvent);
+    }
+  } catch (error) {
+    console.error("Error fetching viewer count:", error);
+    // Retry or handle error as needed
+  }
+}
