@@ -264,44 +264,6 @@ function incrementMessageCount() {
 // Update viewer count every 1 minute
 setInterval(fetchViewerCount, 1 * 10 * 1000);
 
-async function fetchViewerCount() {
-  try {
-    const response = await fetch(`https://kick.com/api/v2/channels/${streamerList[currentStreamerIndex]}`);
-    const data = await response.json();
-
-    // Check if the 'livestream' object exists in the response data
-    if (data.livestream && data.livestream.viewer_count !== undefined) {
-      const viewerCount = data.livestream.viewer_count;
-      const isLive = data.livestream.is_live || false;
-
-      // Update the viewer count
-      updateViewerCount(viewerCount);
-
-      // Update the is_live status
-      updateIsLiveStatus(isLive);
-
-      if (!isLive) {
-        // Move to the next streamer if the current one is offline
-        await switchToNextStreamer();
-      }
-    } else {
-      // If 'livestream' object doesn't exist or 'viewer_count' is undefined, set viewer count to 0
-      updateViewerCount(0);
-      // Update the is_live status to false
-      updateIsLiveStatus(false);
-
-      // Move to the next streamer
-      await switchToNextStreamer();
-    }
-  } catch (error) {
-    console.error("Error fetching viewer count:", error);
-  }
-
-  if (kickWS !== null) {
-    kickWS.addEventListener("message", handleMessageEvent);
-  }
-}
-
 // Function to switch to the next streamer
 async function switchToNextStreamer() {
   // Increment the current streamer index
