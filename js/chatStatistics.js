@@ -4,6 +4,10 @@ const urlParams = new URLSearchParams(window.location.search);
 let channel = urlParams.get("channel") || "god"; // Set default channel
 const topListLength = urlParams.get("listLength") || 5;
 
+// List of streamer channels
+const streamerChannels = ["god", "adinross", "yet_another_streamer"];
+let currentStreamerIndex = 0;
+
 // channel name page element
 const channelNameElement = document.getElementById("channel-name");
 channelNameElement.textContent = String(channel);
@@ -343,10 +347,10 @@ async function checkOnlineStatus() {
 function switchToNextStreamer() {
   // Logic to switch to the next streamer goes here
   console.log('Switching to the next streamer...');
-  // For example, you can update the channel variable with the next streamer's name
-  // You can implement your logic to fetch the next online streamer from a list or database
-  // For demonstration purposes, I'm just assigning a default streamer name "god"
-  channel = "adinross";
+  // Increment the current streamer index
+  currentStreamerIndex = (currentStreamerIndex + 1) % streamerChannels.length;
+  // Set the channel to the next streamer
+  channel = streamerChannels[currentStreamerIndex];
   // Then, reconnect WebSocket with the new streamer
   connectWebSocket();
 }
