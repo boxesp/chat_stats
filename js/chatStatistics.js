@@ -183,7 +183,14 @@ peakViewersElement.textContent = peakViewerCount;
 async function fetchViewerCount() {
   try {
     const response = await fetch(`https://kick.com/api/v2/channels/${streamers[currentChannelIndex]}`);
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
     const data = await response.json();
+
+    if (!data.livestream) {
+      throw new Error('Livestream data not available');
+    }
 
     const viewerCount = data.livestream.viewer_count || 0;
     const isLive = data.livestream.is_live || false;
@@ -195,6 +202,8 @@ async function fetchViewerCount() {
     updateIsLiveStatus(isLive);
   } catch (error) {
     console.error("Error fetching viewer count:", error);
+    // Move to the next streamer if an error occurs
+    moveNextStreamer();
   }
 }
 
