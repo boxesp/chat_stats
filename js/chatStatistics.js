@@ -197,10 +197,24 @@ async function updateViewerCount(viewerCount) {
   }
 }
 
-// set initial peak viewers
+// Function to update peak viewer count
+async function updatePeakViewerCount(viewerCount) {
+  try {
+    if (viewerCount > peakViewerCount) {
+      peakViewerCount = viewerCount;
+
+      // Update UI with peak viewer count
+      const peakViewersElement = document.getElementById("viewer-peak");
+      peakViewersElement.textContent = peakViewerCount.toLocaleString();
+    }
+  } catch (error) {
+    console.error('Error updating peak viewer count:', error);
+  }
+}
+
 // set initial peak viewers
 const peakViewersElement = document.getElementById("viewer-peak");
-peakViewersElement.textContent = peakViewerCount;
+peakViewersElement.textContent = peakViewerCount.toLocaleString();
 
 // Update the is_live status display
 function updateIsLiveStatus(isLive) {
@@ -260,7 +274,6 @@ function getTopUsernamesWithCount(sortedUsernames) {
 }
 
 function getTwoOrLessCount() {
-  console.log(topUsernames);
   let twoOrLessCount = 0;
   for (let [senderUniqueId, count] of topUsernames) {
     if (count <= 2) {
@@ -282,53 +295,3 @@ function incrementMessageCount() {
 
 // Update viewer count every 1 minute
 setInterval(fetchViewerCount, 1 * 60 * 1000);
-
-// Update the session duration
-setInterval(updateSessionDuration, 1000);
-
-// Function to handle switching to the next streamer
-async function switchToNextStreamer() {
-  currentStreamerIndex = (currentStreamerIndex + 1) % streamerList.length;
-  channelNameElement.textContent = streamerList[currentStreamerIndex];
-  await connectWebSocket(); // Connect WebSocket for the new streamer
-}
-
-async function fetchViewerCount() {
-  try {
-    const response = await fetch(`https://kick.com/api/v2/channels/${streamerList[currentStreamerIndex]}`);
-    const data = await response.json();
-
-    // Check if the 'livestream' object exists in the response data
-    if (data.livestream && data.livestream.viewer_count !== undefined) {
-      const viewerCount = data.livestream.viewer_count;
-      const isLive = data.livestream.is_live || false;
-
-      // Update the viewer count
-      updateViewerCount(viewerCount);
-
-      // Update the is_live status
-      updateIsLiveStatus(isLive);
-
-      if (!isLive) {
-        // Move to the next streamer if the current one is offline
-        await switchToNextStreamer();
-      }
-    } else {
-      // If 'livestream' object doesn't exist or 'viewer_count' is undefined, set viewer count to 0
-      updateViewerCount(0);
-      // Update the is_live status to false
-      updateIsLiveStatus(false);
-    }
-  } catch (error) {
-    console.error("Error fetching viewer count:", error);
-  }
-
-  if (kickWS !== null) {
-    kickWS.addEventListener("message", handleMessageEvent);
-  }
-}
-
-// Make sure HTML elements are loaded before updating
-document.addEventListener("DOMContentLoaded", async function () {
-  await connectWebSocket(); // Connect WebSocket when DOM content is loaded
-});
