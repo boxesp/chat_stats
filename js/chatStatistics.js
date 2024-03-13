@@ -1,48 +1,69 @@
 import { setSessionStartTime, calculateSessionDuration } from "./timer.js";
 
-const urlParams = new URLSearchParams(window.location.search);
-let channel = urlParams.get("channel") || "god"; // Set default channel
-const topListLength = urlParams.get("listLength") || 5;
+const state = {
+  channel: "god",
+  topListLength: 5,
+  streamerChannels: ["adinross", "5555555", "rrrrrrrr"],
+  currentStreamerIndex: 0,
+  uniqueUsernames: new Set(),
+  topUsernames: new Map(),
+  messageCount: 0,
+  totalViewerCount: 0,
+  peakViewerCount: 0,
+  updateCount: 0,
+  twoOrLessCount: 0,
+  uniqueUsernamesCount: 0,
+  excludedKickBots: [
+    "babblechat",
+    "botrix",
+    "casterlabs",
+    "intrx",
+    "livebot",
+    "lottobot",
+    "logibot",
+    "mrbeefbot",
+    "notibot",
+    "squadbot",
+    "babzbot",
+    "kickbot"
+  ],
+  kickWSUri:
+    "wss://ws-us2.pusher.com/app/eb1d5f283081a78b932c?protocol=7&client=js&version=7.4.0&flash=false",
+  kickWS: null,
+};
 
-// List of streamer channels
-const streamerChannels = ["adinross", "5555555", "rrrrrrrr"];
-let currentStreamerIndex = 0;
-
-// channel name page element
-const channelNameElement = document.getElementById("channel-name");
-channelNameElement.textContent = String(channel);
-
-const uniqueUsernames = new Set();
-const topUsernames = new Map();
-let messageCount = 0;
-let totalViewerCount = 0;
-let peakViewerCount = 0;
-let updateCount = 0;
-let twoOrLessCount = 0;
-let uniqueUsernamesCount = 0;
-
-const excludedKickBots = [
-  "babblechat",
-  "botrix",
-  "casterlabs",
-  "intrx",
-  "livebot",
-  "lottobot",
-  "logibot",
-  "mrbeefbot",
-  "notibot",
-  "squadbot",
-  "babzbot",
-  "kickbot"
-];
-
-// WebSocket URI
-const kickWSUri =
-  "wss://ws-us2.pusher.com/app/eb1d5f283081a78b932c?protocol=7&client=js&version=7.4.0&flash=false";
-let kickWS = null; // WebSocket instance
-
-// Function to connect WebSocket
 function connectWebSocket() {
+  // Implement WebSocket connection logic
+}
+
+function checkOnlineStatus() {
+  // Implement online status check logic
+}
+
+function switchToNextStreamer() {
+  // Implement switching to the next streamer logic
+}
+
+function handleMessageEvent(event) {
+  // Implement WebSocket message event handling logic
+}
+
+function updateHTMLElements() {
+  // Implement updating HTML elements logic
+}
+
+// Other functions...
+
+document.addEventListener("DOMContentLoaded", async function () {
+  connectWebSocket();
+  checkOnlineStatus();
+
+  state.kickWS.addEventListener("message", handleMessageEvent);
+});
+
+// Other event listeners and initialization code...
+
+
   // Close existing WebSocket connection if it exists
   if (kickWS && kickWS.readyState !== WebSocket.CLOSED) {
     kickWS.close();
@@ -91,7 +112,6 @@ function connectWebSocket() {
     // Attempt to reconnect after a delay
     setTimeout(connectWebSocket, 5000);
   });
-}
 
 {
   // Get the HTML elements for displaying the information
