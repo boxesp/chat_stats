@@ -89,29 +89,6 @@ function connectWebSocket() {
   });
 }
 
-// handle the WebSocket Chat Message Event
-function handleMessageEvent(event) {
-  const data = JSON.parse(event.data);
-  if (data.event === "App\\Events\\ChatMessageEvent") {
-    const messageData = JSON.parse(data.data);
-    let chatMessageSender = messageData.sender.username;
-
-    // Convert sender name to lowercase for case insensitivity
-    const sender = chatMessageSender.toLowerCase();
-
-    // Check if sender is in the excludedKickBots array
-    if (excludedKickBots.includes(sender)) {
-      // Skip processing if the sender is in the excludedKickBots
-      return;
-    }
-
-    // If not excluded, proceed with the functions
-    incrementMessageCount();
-    handleSenderData(messageData.sender);
-    updateTopUsernames(); // Update top usernames when a new message is received
-  }
-}
-
 {
   // Get the HTML elements for displaying the information
   const messageCountElement = document.getElementById("message-count");
