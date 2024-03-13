@@ -69,12 +69,12 @@ function connectWebSocket() {
     console.error("WebSocket error:", event);
   });
 
-  // WebSocket close event listener
-  kickWS.addEventListener("close", function close(event) {
-    console.log("WebSocket connection closed:", event);
-    // Attempt to reconnect after a delay
-    setTimeout(connectWebSocket, 5000);
-  });
+// WebSocket close event listener
+kickWS.addEventListener("close", function close(event) {
+  console.log("WebSocket connection closed:", event);
+  // Attempt to move to the next streamer
+  moveNextStreamer();
+});
 }
 
 // handle the WebSocket Chat Message Event
@@ -220,12 +220,13 @@ function moveNextStreamer() {
   currentChannelIndex = (currentChannelIndex + 1) % streamers.length;
   const nextChannel = streamers[currentChannelIndex];
   console.log("Switching to the next streamer: " + nextChannel);
-  // Close the existing WebSocket connection
+  // Close the existing WebSocket connection if it's open
   if (kickWS && kickWS.readyState === WebSocket.OPEN) {
     kickWS.close();
+  } else {
+    // If the WebSocket connection is not open, directly connect to the next streamer
+    connectWebSocket();
   }
-  // Re-establish connection for the next streamer
-  connectWebSocket();
 }
 
 // create a unique ID for the sender
