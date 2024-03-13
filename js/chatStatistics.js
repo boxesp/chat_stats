@@ -212,19 +212,6 @@ function addSenderUniqueId(senderUniqueId) {
   uniqueUsernames.add(senderUniqueId);
 }
 
-// update top usernames
-function updateTopUsernames() {
-  const sortedUsernames = getSortedUsernames();
-  const topUsernamesWithCount = getTopUsernamesWithCount(sortedUsernames);
-  const twoOrLessCount = getTwoOrLessCount();
-  updateHTMLElements(
-    messageCount,
-    uniqueUsernames.size,
-    topUsernamesWithCount,
-    twoOrLessCount
-  );
-}
-
 // get the top usernames with their message count
 function getTopUsernamesWithCount(sortedUsernames) {
   return sortedUsernames
