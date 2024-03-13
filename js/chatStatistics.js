@@ -262,15 +262,6 @@ function resetStatistics() {
   topUsernamesElement.innerHTML = "";
 }
 
-// Update peak viewer count
-async function updatePeakViewerCount(viewerCount) {
-  peakViewerCount = Math.max(peakViewerCount, viewerCount);
-
-  // Update UI with peak viewer count
-  const peakViewersElement = document.getElementById("viewer-peak");
-  peakViewersElement.textContent = peakViewerCount.toLocaleString();
-}
-
 // handle the message sender data
 function handleSenderData(sender) {
   const senderId = sender.id;
