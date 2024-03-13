@@ -1,7 +1,7 @@
 import { setSessionStartTime, calculateSessionDuration } from "./timer.js";
 
 const urlParams = new URLSearchParams(window.location.search);
-let channel = urlParams.get("channel") || "iziprime";
+let channel = urlParams.get("channel") || "pamk";
 const topListLength = urlParams.get("listLength") || 5;
 
 let messageCount = 0;
@@ -222,7 +222,7 @@ async function fetchViewerCount() {
   // Function to fetch a new channel from your list
   async function fetchNewChannel() {
     // List of channels to try
-    const channelsToTry = ["channel1", "channel2", "channel3"]; // Add your list of channels here
+    const channelsToTry = ["ryda", "channel2", "yuppy"]; // Add your list of channels here
     for (const newChannel of channelsToTry) {
       try {
         const response = await fetch(`https://kick.com/api/v2/channels/${newChannel}`);
