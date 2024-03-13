@@ -35,7 +35,7 @@ const excludedKickBots = [
 
 // kick websocket uri
 const kickWSUri =
-  "wss://ws-us2.pusher.com/app/eb1d5f283081a78b932c?protocol=7&client=js&version=7.4.0&flash=false";
+  `wss://ws-us2.pusher.com/app/eb1d5f283081a78b932c?protocol=7&client=js&version=7.4.0&flash=false&channel=${streamerList[currentStreamerIndex]}`;
 let kickWS = null; // WebSocket instance
 
 // Function to establish a WebSocket connection
