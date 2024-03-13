@@ -192,7 +192,6 @@ async function updateViewerCount(viewerCount) {
   }
 }
 
-
 // set initial peak viewers
 const peakViewersElement = document.getElementById("viewer-peak");
 peakViewersElement.textContent = peakViewerCount;
@@ -287,7 +286,6 @@ function getTwoOrLessCount() {
   for (let [senderUniqueId, count] of topUsernames) {
     if (count <= 2) {
       twoOrLessCount++;
-
     }
   }
   return twoOrLessCount;
@@ -325,7 +323,32 @@ setInterval(checkOnlineStatus, 30 * 1000);
 
 // Add the checkOnlineStatus function here
 async function checkOnlineStatus() {
-  // Code for checking online status
+  try {
+    const response = await fetch(`https://kick.com/api/v2/channels/${channel}`);
+    const data = await response.json();
+    const isLive = data.livestream && data.livestream.is_live;
+
+    if (!isLive) {
+      switchToNextStreamer(); // Switch to the next streamer if offline
+    } else {
+      updateViewerCount(data.livestream.viewer_count);
+      updateIsLiveStatus(true);
+    }
+  } catch (error) {
+    console.error("Error checking online status:", error);
+  }
+}
+
+// Add a function to switch to the next streamer
+function switchToNextStreamer() {
+  // Logic to switch to the next streamer goes here
+  console.log('Switching to the next streamer...');
+  // For example, you can update the channel variable with the next streamer's name
+  // You can implement your logic to fetch the next online streamer from a list or database
+  // For demonstration purposes, I'm just assigning a default streamer name "god"
+  channel = "god";
+  // Then, reconnect WebSocket with the new streamer
+  connectWebSocket();
 }
 
 connectWebSocket();
