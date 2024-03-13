@@ -334,7 +334,6 @@ async function fetchViewerCount() {
   }
 }
 
-// Function to handle switching to the next streamer
 async function switchToNextStreamer() {
   // Increment the current streamer index
   currentStreamerIndex = (currentStreamerIndex + 1) % streamerList.length;
@@ -342,7 +341,7 @@ async function switchToNextStreamer() {
   // Update the channel name display
   channelNameElement.textContent = streamerList[currentStreamerIndex];
 
-  // Update the WebSocket URI for the new streamer
+  // Update the kickWSUri for the new streamer
   kickWSUri = `wss://ws-us2.pusher.com/app/eb1d5f283081a78b932c?protocol=7&client=js&version=7.4.0&flash=false&channel=${streamerList[currentStreamerIndex]}`;
 
   // Connect WebSocket for the new streamer
