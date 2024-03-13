@@ -38,25 +38,29 @@ function connectWebSocket() {
 
   // WebSocket open event listener
   kickWS.addEventListener("open", async function open() {
-    const userData = await fetch(
-      `https://kick.com/api/v2/channels/${channel}`
-    ).then((response) => response.json());
+    try {
+      const userData = await fetch(
+        `https://kick.com/api/v2/channels/${channel}`
+      ).then((response) => response.json());
 
-    kickWS.send(
-      JSON.stringify({
-        event: "pusher:subscribe",
-        data: { auth: "", channel: `chatrooms.${userData.chatroom.id}.v2` },
-      })
-    );
-    console.log(
-      "Connected to Kick.com Streamer Chat: " +
-        channel +
-        " Chatroom ID: " +
-        userData.chatroom.id
-    );
-    setSessionStartTime(); // Set the session start time when the WebSocket connection opens
-    updateIsLiveStatus();
-    await fetchViewerCount();
+      kickWS.send(
+        JSON.stringify({
+          event: "pusher:subscribe",
+          data: { auth: "", channel: `chatrooms.${userData.chatroom.id}.v2` },
+        })
+      );
+      console.log(
+        "Connected to Kick.com Streamer Chat: " +
+          channel +
+          " Chatroom ID: " +
+          userData.chatroom.id
+      );
+      setSessionStartTime(); // Set the session start time when the WebSocket connection opens
+      updateIsLiveStatus();
+      await fetchViewerCount();
+    } catch (error) {
+      console.error("Error establishing WebSocket connection:", error);
+    }
   });
 
   // WebSocket error event listener
@@ -71,6 +75,11 @@ function connectWebSocket() {
     setTimeout(connectWebSocket, 5000);
   });
 }
+
+// Fetch initial viewer count immediately after connecting WebSocket
+kickWS.addEventListener("open", async function open() {
+  await fetchViewerCount();
+});
 
 // handle the WebSocket Chat Message Event
 function handleMessageEvent(event) {
@@ -231,12 +240,6 @@ async function fetchViewerCount() {
   }
   
   // Your existing code here...
-  
-  // Fetch initial viewer count immediately after connecting WebSocket
-  kickWS.addEventListener("open", async function open() {
-    // Your existing code here...
-    await fetchViewerCount();
-  });
   
   // Update viewer count every 1 minutes
   setInterval(fetchViewerCount, 1 * 60 * 1000);
