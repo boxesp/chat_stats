@@ -7,7 +7,7 @@ let currentStreamerIndex = 0;
 
 // channel name page element
 const channelNameElement = document.getElementById("channel-name");
-channelNameElement.textContent = String(channel);
+channelNameElement.textContent = streamerList[currentStreamerIndex];
 
 const uniqueUsernames = new Set();
 const topUsernames = new Map();
