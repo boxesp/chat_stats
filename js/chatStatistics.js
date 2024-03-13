@@ -350,8 +350,119 @@ function switchToNextStreamer() {
   // Update the channel name element
   channelNameElement.textContent = channel; // Assuming channelNameElement is defined globally
   
+  // Reset statistics
+  resetStatistics();
+  
   // Then, reconnect WebSocket with the new streamer
   connectWebSocket();
 }
 
-connectWebSocket();
+// Function to reset statistics
+function resetStatistics() {
+  messageCount = 0;
+  totalViewerCount = 0;
+  peakViewerCount = 0;
+  updateCount = 0;
+  twoOrLessCount = 0;
+  uniqueUsernames.clear();
+  topUsernames.clear();
+  updateHTMLElements(0, 0, [], 0); // Clear HTML elements
+}
+
+// handle the WebSocket Chat Message Event
+function handleMessageEvent(event) {
+  const data = JSON.parse(event.data);
+  if (data.event === "App\\Events\\ChatMessageEvent") {
+    const messageData = JSON.parse(data.data);
+    let chatMessageSender = messageData.sender.username;
+
+    // Convert sender name to lowercase for case insensitivity
+    const sender = chatMessageSender.toLowerCase();
+
+    // Check if sender is in the excludedKickBots array
+    if (excludedKickBots.includes(sender)) {
+      // Skip processing if the sender is in the excludedKickBots
+      return;
+    }
+
+    // If not excluded, proceed with the functions
+    incrementMessageCount();
+    handleSenderData(messageData.sender);
+    updateTopUsernames();
+  }
+}
+
+// Increment the message count
+function incrementMessageCount() {
+  messageCount++;
+}
+
+// Update viewer count
+async function updateViewerCount(viewerCount) {
+  try {
+    totalViewerCount += viewerCount;
+
+    // Increment update count
+    updateCount++;
+
+    // Calculate new average viewer count
+    const averageViewerCount = updateCount > 0 ? totalViewerCount / updateCount : 0;
+
+    // Update UI with viewer count
+    const viewerCountElement = document.getElementById("viewer-count");
+    viewerCountElement.textContent = viewerCount ? viewerCount.toLocaleString() : "0";
+
+    // Update UI with average viewer count
+    const viewerAverageElement = document.getElementById("viewer-average");
+    viewerAverageElement.textContent = Math.round(averageViewerCount).toLocaleString();
+
+    // Update peak viewer count
+    await updatePeakViewerCount(viewerCount);
+  } catch (error) {
+    console.error('Error updating viewer count:', error);
+  }
+}
+
+// Update peak viewer count
+async function updatePeakViewerCount(viewerCount) {
+  peakViewerCount = Math.max(peakViewerCount, viewerCount);
+
+  // Update UI with peak viewer count
+  const peakViewersElement = document.getElementById("viewer-peak");
+  peakViewersElement.textContent = peakViewerCount.toLocaleString();
+}
+
+// handle the message sender data
+function handleSenderData(sender) {
+  const senderId = sender.id;
+  const senderUsername = sender.username;
+  const senderUniqueId = createSenderUniqueId(senderId, senderUsername);
+  addSenderUniqueId(senderUniqueId);
+  incrementUsernameCount(senderUniqueId);
+}
+
+// Periodically check online status
+setInterval(checkOnlineStatus, 30 * 1000);
+
+// Add the checkOnlineStatus function here
+async function checkOnlineStatus() {
+  try {
+    const response = await fetch(`https://kick.com/api/v2/channels/${channel}`);
+    const data = await response.json();
+    const isLive = data.livestream && data.livestream.is_live;
+
+    if (!isLive) {
+      switchToNextStreamer(); // Switch to the next streamer if offline
+    } else {
+      updateViewerCount(data.livestream.viewer_count);
+      updateIsLiveStatus(true);
+    }
+  } catch (error) {
+    console.error("Error checking online status:", error);
+  }
+}
+
+// Reset statistics when the page loads
+document.addEventListener("DOMContentLoaded", function () {
+  resetStatistics();
+});
