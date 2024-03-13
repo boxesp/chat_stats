@@ -1,7 +1,7 @@
 import { setSessionStartTime, calculateSessionDuration } from "./timer.js";
 
 const urlParams = new URLSearchParams(window.location.search);
-const streamerList = ["xqc", "ludwig", "adinross"]; // List of streamers
+const streamerList = ["xqc", "jesss", "adinross"]; // List of streamers
 const topListLength = urlParams.get("listLength") || 5;
 let currentStreamerIndex = 0;
 let reconnectWebSocket = true; // Flag to control WebSocket reconnection
