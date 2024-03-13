@@ -403,3 +403,164 @@ function incrementMessageCount() {
   const messageCountElement = document.getElementById("message-count");
   messageCountElement.textContent = messageCount.toLocaleString();
 }
+
+// HTML elements for statistics display
+let messageCountElement, uniqueUsernamesElement, topUsernamesElement;
+
+document.addEventListener("DOMContentLoaded", async function () {
+  // Initialize WebSocket connection
+  connectWebSocket();
+
+  // Retrieve HTML elements
+  messageCountElement = document.getElementById("message-count");
+  uniqueUsernamesElement = document.getElementById("unique-usernames");
+  topUsernamesElement = document.getElementById("top-usernames");
+
+  // Start checking online status
+  checkOnlineStatus();
+
+  // Add WebSocket message event listener
+  kickWS.addEventListener("message", handleMessageEvent);
+});
+
+// Update the HTML elements with the latest information
+function updateHTMLElements(
+  messageCount,
+  uniqueUsernamesCount,
+  topUsernames,
+  twoOrLessCount
+) {
+  // Update the HTML elements with the latest information
+  messageCountElement.textContent = messageCount.toLocaleString();
+  uniqueUsernamesElement.textContent = uniqueUsernamesCount.toLocaleString();
+  // Clear the existing list of top usernames
+  topUsernamesElement.innerHTML = "";
+
+  // Create and append <li> elements for each top username
+  topUsernames.forEach(({ username, count }) => {
+    const listItem = document.createElement("li");
+
+    const usernameSpan = document.createElement("span");
+    usernameSpan.textContent = username;
+    usernameSpan.className = "username"; // Assign 'username' as the class name
+    listItem.appendChild(usernameSpan);
+
+    const countSpan = document.createElement("span");
+    countSpan.textContent = count ? count.toLocaleString() : "";
+    countSpan.className = "messageCount"; // Assign 'messageCount' as the class name
+    listItem.appendChild(countSpan);
+
+    topUsernamesElement.appendChild(listItem);
+  });
+}
+
+// Fetch the viewer count and check is_live status
+async function fetchViewerCount() {
+  try {
+    const response = await fetch(`https://kick.com/api/v2/channels/${channel}`);
+    const data = await response.json();
+
+    // Check if the 'livestream' object exists in the response data
+    if (data.livestream && data.livestream.viewer_count !== undefined) {
+      const viewerCount = data.livestream.viewer_count;
+      const isLive = data.livestream.is_live || false;
+
+      // Update the viewer count
+      updateViewerCount(viewerCount);
+
+      // Update the is_live status
+      updateIsLiveStatus(isLive);
+    } else {
+      // If 'livestream' object doesn't exist or 'viewer_count' is undefined, set viewer count to 0
+      updateViewerCount(0);
+      // Update the is_live status to false
+      updateIsLiveStatus(false);
+    }
+  } catch (error) {
+    console.error("Error fetching viewer count:", error);
+  }
+}
+
+// Update viewer count
+async function updateViewerCount(viewerCount) {
+  try {
+    totalViewerCount += viewerCount;
+
+    // Increment update count
+    updateCount++;
+
+    // Calculate new average viewer count
+    const averageViewerCount = updateCount > 0 ? totalViewerCount / updateCount : 0;
+
+    // Update UI with viewer count
+    const viewerCountElement = document.getElementById("viewer-count");
+    viewerCountElement.textContent = viewerCount ? viewerCount.toLocaleString() : "0";
+
+    // Update UI with average viewer count
+    const viewerAverageElement = document.getElementById("viewer-average");
+    viewerAverageElement.textContent = Math.round(averageViewerCount).toLocaleString();
+
+    // Update peak viewer count
+    await updatePeakViewerCount(viewerCount);
+  } catch (error) {
+    console.error('Error updating viewer count:', error);
+  }
+}
+
+// Update peak viewer count
+async function updatePeakViewerCount(viewerCount) {
+  peakViewerCount = Math.max(peakViewerCount, viewerCount);
+
+  // Update UI with peak viewer count
+  const peakViewersElement = document.getElementById("viewer-peak");
+  peakViewersElement.textContent = peakViewerCount.toLocaleString();
+}
+
+// Periodically check online status
+setInterval(checkOnlineStatus, 5 * 1000);
+
+// Reset statistics when the page loads
+document.addEventListener("DOMContentLoaded", function () {
+  resetStatistics();
+});
+
+// Increment the message count
+function incrementMessageCount() {
+  messageCount++;
+
+  // Update total message count
+  messageCountElement.textContent = messageCount.toLocaleString();
+}
+
+// Function to reset statistics
+function resetStatistics() {
+  messageCount = 0;
+  uniqueUsernames.clear();
+  topUsernames.clear();
+  messageCountElement.textContent = "0";
+  uniqueUsernamesElement.textContent = "0";
+  topUsernamesElement.innerHTML = "";
+}
+
+// Function to handle WebSocket Chat Message Event
+function handleMessageEvent(event) {
+  const data = JSON.parse(event.data);
+  if (data.event === "App\\Events\\ChatMessageEvent") {
+    const messageData = JSON.parse(data.data);
+    let chatMessageSender = messageData.sender.username;
+
+    // Convert sender name to lowercase for case insensitivity
+    const sender = chatMessageSender.toLowerCase();
+
+    // Check if sender is in the excludedKickBots array
+    if (excludedKickBots.includes(sender)) {
+      // Skip processing if the sender is in the excludedKickBots
+      return;
+    }
+
+    // If not excluded, proceed with the functions
+    incrementMessageCount();
+    handleSenderData(messageData.sender);
+    updateTopUsernames(); // Update top usernames when a new message is received
+  }
+}
