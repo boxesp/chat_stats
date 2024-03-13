@@ -99,20 +99,6 @@ document.addEventListener("DOMContentLoaded", async function () {
     await fetchViewerCount();
   });
 
-  // WebSocket error event listener
-  kickWS.addEventListener("error", function error(event) {
-    console.error("WebSocket error:", event);
-    // Attempt to reconnect after a delay
-    setTimeout(connectWebSocket, 5000);
-  });
-
-  // WebSocket close event listener
-  kickWS.addEventListener("close", function close(event) {
-    console.log("WebSocket connection closed:", event);
-    // Attempt to reconnect after a delay
-    setTimeout(connectWebSocket, 5000);
-  });
-
 {
   // Get the HTML elements for displaying the information
   const messageCountElement = document.getElementById("message-count");
@@ -227,47 +213,6 @@ function updateSessionDuration() {
 
 // Periodically check online status
 setInterval(checkOnlineStatus, 30 * 1000);
-
-// Function to switch to the next streamer
-function switchToNextStreamer() {
-  console.log('Switching to the next streamer...');
-  // Close the current WebSocket connection if it exists
-  if (kickWS) {
-    kickWS.close();
-  }
-
-  // Reset statistics
-  resetStatistics();
-
-  // Increment the current streamer index
-  currentStreamerIndex = (currentStreamerIndex + 1) % streamerChannels.length;
-  // Set the channel to the next streamer
-  channel = streamerChannels[currentStreamerIndex];
-
-  // Update the channel name element
-  channelNameElement.textContent = channel;
-
-  // Then, reconnect WebSocket with the new streamer
-  connectWebSocket();
-}
-
-// Function to check online status
-async function checkOnlineStatus() {
-  try {
-    const response = await fetch(`https://kick.com/api/v2/channels/${channel}`);
-    const data = await response.json();
-    const isLive = data.livestream && data.livestream.is_live;
-
-    if (!isLive) {
-      switchToNextStreamer(); // Switch to the next streamer if offline
-    } else {
-      updateViewerCount(data.livestream.viewer_count);
-      updateIsLiveStatus(true);
-    }
-  } catch (error) {
-    console.error("Error checking online status:", error);
-  }
-}
 
 // Reset statistics when the page loads
 document.addEventListener("DOMContentLoaded", function () {
