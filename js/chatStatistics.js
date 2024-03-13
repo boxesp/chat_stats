@@ -302,4 +302,17 @@ function updateSessionDuration() {
   sessionDurationElement.textContent = sessionDuration;
 }
 
+// Update peak viewer count
+async function updatePeakViewerCount(viewerCount) {
+  try {
+    if (viewerCount > peakViewerCount) {
+      peakViewerCount = viewerCount;
+      const peakViewersElement = document.getElementById("viewer-peak");
+      peakViewersElement.textContent = peakViewerCount.toLocaleString();
+    }
+  } catch (error) {
+    console.error('Error updating peak viewer count:', error);
+  }
+}
+
 connectWebSocket();
