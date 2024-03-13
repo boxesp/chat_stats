@@ -1,7 +1,7 @@
 import { setSessionStartTime, calculateSessionDuration } from "./timer.js";
 
 const urlParams = new URLSearchParams(window.location.search);
-const channel = urlParams.get("channel") || "god";
+const channel = urlParams.get("channel") || "adinross";
 const topListLength = urlParams.get("listLength") || 5;
 
 // channel name page element
