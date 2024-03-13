@@ -315,7 +315,7 @@ function updateSessionDuration() {
 }
 
 console.log(streamers);
-
+console.log(urlParams.getAll("channel"));
 console.log(currentChannelIndex);
 
 // establish initial Kick WebSocket connection
