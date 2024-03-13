@@ -265,6 +265,11 @@ function switchToNextStreamer() {
   // Logic to switch to the next streamer goes here
   console.log('Switching to the next streamer...');
   
+  // Close the current WebSocket connection if it exists
+  if (kickWS) {
+    kickWS.close();
+  }
+  
   // Reset statistics
   resetStatistics();
   
