@@ -1,8 +1,12 @@
 import { setSessionStartTime, calculateSessionDuration } from "./timer.js";
 
 const urlParams = new URLSearchParams(window.location.search);
-let channel = urlParams.get("channel") || "pamk";
+const channel = urlParams.get("channel") || "odablock";
 const topListLength = urlParams.get("listLength") || 5;
+
+// channel name page element
+const channelNameElement = document.getElementById("channel-name");
+channelNameElement.textContent = String(channel);
 
 let messageCount = 0;
 const uniqueUsernames = new Set();
@@ -38,29 +42,25 @@ function connectWebSocket() {
 
   // WebSocket open event listener
   kickWS.addEventListener("open", async function open() {
-    try {
-      const userData = await fetch(
-        `https://kick.com/api/v2/channels/${channel}`
-      ).then((response) => response.json());
+    const userData = await fetch(
+      `https://kick.com/api/v2/channels/${channel}`
+    ).then((response) => response.json());
 
-      kickWS.send(
-        JSON.stringify({
-          event: "pusher:subscribe",
-          data: { auth: "", channel: `chatrooms.${userData.chatroom.id}.v2` },
-        })
-      );
-      console.log(
-        "Connected to Kick.com Streamer Chat: " +
-          channel +
-          " Chatroom ID: " +
-          userData.chatroom.id
-      );
-      setSessionStartTime(); // Set the session start time when the WebSocket connection opens
-      updateIsLiveStatus();
-      await fetchViewerCount();
-    } catch (error) {
-      console.error("Error establishing WebSocket connection:", error);
-    }
+    kickWS.send(
+      JSON.stringify({
+        event: "pusher:subscribe",
+        data: { auth: "", channel: `chatrooms.${userData.chatroom.id}.v2` },
+      })
+    );
+    console.log(
+      "Connected to Kick.com Streamer Chat: " +
+        channel +
+        " Chatroom ID: " +
+        userData.chatroom.id
+    );
+    setSessionStartTime(); // Set the session start time when the WebSocket connection opens
+    updateIsLiveStatus();
+    await fetchViewerCount();
   });
 
   // WebSocket error event listener
@@ -75,11 +75,6 @@ function connectWebSocket() {
     setTimeout(connectWebSocket, 5000);
   });
 }
-
-// Fetch initial viewer count immediately after connecting WebSocket
-kickWS.addEventListener("open", async function open() {
-  await fetchViewerCount();
-});
 
 // handle the WebSocket Chat Message Event
 function handleMessageEvent(event) {
@@ -184,20 +179,11 @@ const peakViewersElement = document.getElementById("viewer-peak");
 peakViewersElement.textContent = peakViewerCount;
 
 // Fetch the viewer count and check is_live status
-// Fetch the viewer count and check is_live status
 async function fetchViewerCount() {
   try {
-    console.log("Fetching viewer count for channel:", channel);
     const response = await fetch(`https://kick.com/api/v2/channels/${channel}`);
-    if (!response.ok) {
-      throw new Error('Network response was not ok');
-    }
     const data = await response.json();
-    console.log("API response:", data); // Log the API response for inspection
-    if (!data || !data.livestream) {
-      console.error('Invalid response format or missing livestream data');
-      return; // Exit early if data is not in the expected format
-    }
+
     const viewerCount = data.livestream.viewer_count || 0;
     const isLive = data.livestream.is_live || false;
 
@@ -206,56 +192,101 @@ async function fetchViewerCount() {
 
     // Update the is_live status
     updateIsLiveStatus(isLive);
-
-    // Check if the viewer count is zero and the channel is not live
-    if (viewerCount === 0 && !isLive) {
-      // Fetch a new channel from your list
-      const newChannel = await fetchNewChannel();
-      // If a new channel is found, switch to it
-      if (newChannel) {
-        channel = newChannel;
-        console.log("Switching to new channel:", channel);
-        connectWebSocket(); // Reconnect WebSocket with the new channel
-      }
-    }
   } catch (error) {
     console.error("Error fetching viewer count:", error);
   }
 }
-  
-  // Function to fetch a new channel from your list
-  async function fetchNewChannel() {
-    // List of channels to try
-    const channelsToTry = ["ryda", "channel2", "yuppy"]; // Add your list of channels here
-    for (const newChannel of channelsToTry) {
-      try {
-        const response = await fetch(`https://kick.com/api/v2/channels/${newChannel}`);
-        const data = await response.json();
-        const isLive = data.livestream.is_live || false;
-        const viewerCount = data.livestream.viewer_count || 0;
-        if (isLive && viewerCount > 0) {
-          return newChannel; // Return the first live channel found with non-zero viewers
-        }
-      } catch (error) {
-        console.error("Error fetching new channel:", error);
-      }
+
+// Update the is_live status display
+function updateIsLiveStatus(isLive) {
+  const channelLiveElement = document.getElementById("channel-live");
+
+  if (isLive) {
+    channelLiveElement.textContent = "Live";
+    channelLiveElement.classList.add("live");
+    channelLiveElement.classList.remove("offline");
+  } else {
+    channelLiveElement.textContent = "Offline";
+    channelLiveElement.classList.add("offline");
+    channelLiveElement.classList.remove("live");
+  }
+}
+
+// create a unique ID for the sender
+function createSenderUniqueId(id, username) {
+  return `${id}-${username}`;
+}
+
+// add the sender unique ID to the set of unique usernames
+function addSenderUniqueId(senderUniqueId) {
+  uniqueUsernames.add(senderUniqueId);
+}
+
+// increment the username count in the topUsernames map
+function incrementUsernameCount(senderUniqueId) {
+  if (topUsernames.has(senderUniqueId)) {
+    topUsernames.set(senderUniqueId, topUsernames.get(senderUniqueId) + 1);
+  } else {
+    topUsernames.set(senderUniqueId, 1);
+  }
+}
+
+// update top usernames
+function updateTopUsernames() {
+  const sortedUsernames = getSortedUsernames();
+  const topUsernamesWithCount = getTopUsernamesWithCount(sortedUsernames);
+  const twoOrLessCount = getTwoOrLessCount();
+  updateHTMLElements(
+    messageCount,
+    uniqueUsernames.size,
+    topUsernamesWithCount,
+    twoOrLessCount
+  );
+}
+
+// get the top usernames with their message count
+function getTopUsernamesWithCount(sortedUsernames) {
+  return sortedUsernames
+    .slice(0, topListLength)
+    .map(([senderUniqueId, count]) => ({
+      username: senderUniqueId.split("-")[1],
+      count: count,
+    }));
+}
+
+function getTwoOrLessCount() {
+  console.log(topUsernames);
+  let twoOrLessCount = 0;
+  for (let [senderUniqueId, count] of topUsernames) {
+    if (count <= 2) {
+      twoOrLessCount++;
+      
     }
-    return null; // Return null if no live channel found
   }
-  
-  // Your existing code here...
-  
-  // Update viewer count every 1 minutes
-  setInterval(fetchViewerCount, 1 * 60 * 1000);
-  
-  // update the session duration
-  setInterval(updateSessionDuration, 1000);
-  
-  function updateSessionDuration() {
-    const sessionDuration = calculateSessionDuration();
-    const sessionDurationElement = document.getElementById("session-duration");
-    sessionDurationElement.textContent = sessionDuration;
-  }
-  
-  // establish initial Kick WebSocket connection
-  connectWebSocket();
+  return twoOrLessCount;
+}
+
+// sort top usernames by count in descending order
+function getSortedUsernames() {
+  return Array.from(topUsernames.entries()).sort((a, b) => b[1] - a[1]);
+}
+
+// increment the message count
+function incrementMessageCount() {
+  messageCount++;
+}
+
+// Update viewer count every 1 minutes
+setInterval(fetchViewerCount, 1 * 60 * 1000);
+
+// update the session duration
+setInterval(updateSessionDuration, 1000);
+
+function updateSessionDuration() {
+  const sessionDuration = calculateSessionDuration();
+  const sessionDurationElement = document.getElementById("session-duration");
+  sessionDurationElement.textContent = sessionDuration;
+}
+
+// establish initial Kick WebSocket connection
+connectWebSocket();
