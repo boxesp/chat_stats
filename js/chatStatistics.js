@@ -334,26 +334,6 @@ document.addEventListener("DOMContentLoaded", async function () {
   await fetchViewerCount(); // Fetch initial viewer count
 });
 
-// Add error handling to fetchViewerCount function
-async function fetchViewerCount() {
-  try {
-    const response = await fetch(`https://kick.com/api/v2/channels/${streamerList[currentStreamerIndex]}`);
-    const data = await response.json();
-
-    // Extract viewer count from API response and update
-    const viewerCount = data.livestream && data.livestream.viewer_count !== undefined ? data.livestream.viewer_count : 0;
-    updateViewerCount(viewerCount);
-
-    // Continue WebSocket connection after updating viewer count
-    if (kickWS !== null) {
-      kickWS.addEventListener("message", handleMessageEvent);
-    }
-  } catch (error) {
-    console.error("Error fetching viewer count:", error);
-    // Retry or handle error as needed
-  }
-}
-
 // Update the viewer count function to handle live viewers, average viewers, and peak viewers
 function updateViewerCount(viewerCount) {
   const liveViewersElement = document.getElementById("live-viewers");
