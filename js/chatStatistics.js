@@ -67,12 +67,6 @@ function connectWebSocket() {
     setSessionStartTime(); // Set the session start time when the WebSocket connection opens
     updateIsLiveStatus();
     await fetchViewerCount();
-
-    const channelExists = await checkStreamerExists(channel);
-    if (!channelExists) {
-      // If the channel doesn't exist, insert it into the database
-      await insertStreamer(channel);
-    }
   });
 
   // WebSocket error event listener
@@ -386,4 +380,40 @@ async function checkOnlineStatus() {
 // Reset statistics when the page loads
 document.addEventListener("DOMContentLoaded", function () {
   resetStatistics();
+
+// Increment the username count in the topUsernames map
+function incrementUsernameCount(senderUniqueId) {
+  if (topUsernames.has(senderUniqueId)) {
+    topUsernames.set(senderUniqueId, topUsernames.get(senderUniqueId) + 1);
+  } else {
+    topUsernames.set(senderUniqueId, 1);
+  }
+
+  // Update unique chatters count
+  uniqueUsernamesCount = uniqueUsernames.size;
+
+  // Update chatters with less than 3 messages count
+  twoOrLessCount = getTwoOrLessCount();
+}
+
+// Update top usernames
+function updateTopUsernames() {
+  const sortedUsernames = getSortedUsernames();
+  const topUsernamesWithCount = getTopUsernamesWithCount(sortedUsernames);
+  updateHTMLElements(
+    messageCount,
+    uniqueUsernamesCount, // Update unique chatters count
+    topUsernamesWithCount,
+    twoOrLessCount // Update chatters with less than 3 messages count
+  );
+}
+
+// Increment the message count
+function incrementMessageCount() {
+  messageCount++;
+
+  // Update total message count
+  const messageCountElement = document.getElementById("message-count");
+  messageCountElement.textContent = messageCount.toLocaleString();
+}
 });
