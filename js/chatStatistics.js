@@ -63,7 +63,7 @@ function connectWebSocket() {
     setSessionStartTime(); // Set the session start time when the WebSocket connection opens
     updateIsLiveStatus();
     await fetchViewerCount();
-});
+  });
 
   // WebSocket error event listener
   kickWS.addEventListener("error", function error(event) {
@@ -144,7 +144,11 @@ function updateHTMLElements(
 
 // Make sure HTML elements are loaded before updating
 document.addEventListener("DOMContentLoaded", async function () {
-  kickWS.addEventListener("message", handleMessageEvent);
+  if (kickWS !== null) {
+    kickWS.addEventListener("message", handleMessageEvent);
+  }
+
+  connectWebSocket();
 });
 
 // handle the message sender data
@@ -248,7 +252,6 @@ function getTwoOrLessCount() {
   for (let [senderUniqueId, count] of topUsernames) {
     if (count <= 2) {
       twoOrLessCount++;
-
     }
   }
   return twoOrLessCount;
@@ -307,7 +310,7 @@ async function fetchViewerCount() {
     console.error("Error fetching viewer count:", error);
   }
   
-if (kickWS !== null) {
+  if (kickWS !== null) {
     kickWS.addEventListener("message", handleMessageEvent);
-}
+  }
 }
