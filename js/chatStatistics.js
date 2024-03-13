@@ -43,8 +43,12 @@ async function connectWebSocket() {
   // Close the existing WebSocket connection if it's open
   if (kickWS !== null && kickWS.readyState === WebSocket.OPEN) {
     kickWS.close();
+  } else if (kickWS !== null && kickWS.readyState === WebSocket.CONNECTING) {
+    // Return if WebSocket is already connecting to prevent duplicate connections
+    return;
   }
 
+  // Create a new WebSocket instance
   kickWS = new WebSocket(kickWSUri);
 
   return new Promise((resolve, reject) => {
@@ -87,8 +91,9 @@ async function connectWebSocket() {
     // WebSocket close event listener
     kickWS.addEventListener("close", function close(event) {
       console.log("WebSocket connection closed:", event);
-      // Attempt to reconnect after a delay
-      setTimeout(connectWebSocket, 5000);
+      if (!event.wasClean)
+        // Attempt to reconnect only if it's not a clean close
+        setTimeout(connectWebSocket, 5000);
     });
   });
 }
