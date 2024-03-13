@@ -161,33 +161,6 @@ document.addEventListener("DOMContentLoaded", async function () {
 const peakViewersElement = document.getElementById("viewer-peak");
 peakViewersElement.textContent = peakViewerCount;
 
-// Fetch the viewer count and check is_live status
-async function fetchViewerCount() {
-  try {
-    const response = await fetch(`https://kick.com/api/v2/channels/${channel}`);
-    const data = await response.json();
-
-    // Check if the 'livestream' object exists in the response data
-    if (data.livestream && data.livestream.viewer_count !== undefined) {
-      const viewerCount = data.livestream.viewer_count;
-      const isLive = data.livestream.is_live || false;
-
-      // Update the viewer count
-      updateViewerCount(viewerCount);
-
-      // Update the is_live status
-      updateIsLiveStatus(isLive);
-    } else {
-      // If 'livestream' object doesn't exist or 'viewer_count' is undefined, set viewer count to 0
-      updateViewerCount(0);
-      // Update the is_live status to false
-      updateIsLiveStatus(false);
-    }
-  } catch (error) {
-    console.error("Error fetching viewer count:", error);
-  }
-}
-
 // Update the is_live status display
 function updateIsLiveStatus(isLive) {
   const channelLiveElement = document.getElementById("channel-live");
