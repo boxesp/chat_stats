@@ -184,41 +184,39 @@ const peakViewersElement = document.getElementById("viewer-peak");
 peakViewersElement.textContent = peakViewerCount;
 
 // Fetch the viewer count and check is_live status
+// Fetch the viewer count and check is_live status
 async function fetchViewerCount() {
   try {
+    console.log("Fetching viewer count for channel:", channel);
     const response = await fetch(`https://kick.com/api/v2/channels/${channel}`);
     if (!response.ok) {
       throw new Error('Network response was not ok');
     }
     const data = await response.json();
+    console.log("API response:", data); // Log the API response for inspection
     if (!data || !data.livestream) {
-      throw new Error('Invalid response format or missing livestream data');
+      console.error('Invalid response format or missing livestream data');
+      return; // Exit early if data is not in the expected format
     }
+    const viewerCount = data.livestream.viewer_count || 0;
+    const isLive = data.livestream.is_live || false;
 
-    // Additional check to ensure data.livestream is not null
-    if (data.livestream !== null) {
-      const viewerCount = data.livestream.viewer_count || 0;
-      const isLive = data.livestream.is_live || false;
+    // Update the viewer count
+    updateViewerCount(viewerCount);
 
-      // Update the viewer count
-      updateViewerCount(viewerCount);
+    // Update the is_live status
+    updateIsLiveStatus(isLive);
 
-      // Update the is_live status
-      updateIsLiveStatus(isLive);
-
-      // Check if the viewer count is zero and the channel is not live
-      if (viewerCount === 0 && !isLive) {
-        // Fetch a new channel from your list
-        const newChannel = await fetchNewChannel();
-        // If a new channel is found, switch to it
-        if (newChannel) {
-          channel = newChannel;
-          console.log("Switching to new channel: " + channel);
-          connectWebSocket(); // Reconnect WebSocket with the new channel
-        }
+    // Check if the viewer count is zero and the channel is not live
+    if (viewerCount === 0 && !isLive) {
+      // Fetch a new channel from your list
+      const newChannel = await fetchNewChannel();
+      // If a new channel is found, switch to it
+      if (newChannel) {
+        channel = newChannel;
+        console.log("Switching to new channel:", channel);
+        connectWebSocket(); // Reconnect WebSocket with the new channel
       }
-    } else {
-      console.error('Livestream data is null');
     }
   } catch (error) {
     console.error("Error fetching viewer count:", error);
