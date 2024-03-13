@@ -314,5 +314,9 @@ function updateSessionDuration() {
   sessionDurationElement.textContent = sessionDuration;
 }
 
+console.log(streamers);
+
+console.log(currentChannelIndex);
+
 // establish initial Kick WebSocket connection
 connectWebSocket();
