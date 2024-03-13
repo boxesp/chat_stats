@@ -268,37 +268,6 @@ document.addEventListener("DOMContentLoaded", async function () {
   kickWS.addEventListener("message", handleMessageEvent);
 });
 
-// Update the HTML elements with the latest information
-function updateHTMLElements(
-  messageCount,
-  uniqueUsernamesCount,
-  topUsernames,
-  twoOrLessCount
-) {
-  // Update the HTML elements with the latest information
-  messageCountElement.textContent = messageCount.toLocaleString();
-  uniqueUsernamesElement.textContent = uniqueUsernamesCount.toLocaleString();
-  // Clear the existing list of top usernames
-  topUsernamesElement.innerHTML = "";
-
-  // Create and append <li> elements for each top username
-  topUsernames.forEach(({ username, count }) => {
-    const listItem = document.createElement("li");
-
-    const usernameSpan = document.createElement("span");
-    usernameSpan.textContent = username;
-    usernameSpan.className = "username"; // Assign 'username' as the class name
-    listItem.appendChild(usernameSpan);
-
-    const countSpan = document.createElement("span");
-    countSpan.textContent = count ? count.toLocaleString() : "";
-    countSpan.className = "messageCount"; // Assign 'messageCount' as the class name
-    listItem.appendChild(countSpan);
-
-    topUsernamesElement.appendChild(listItem);
-  });
-}
-
 // Fetch the viewer count and check is_live status
 async function fetchViewerCount() {
   try {
