@@ -330,3 +330,36 @@ async function switchToNextStreamer() {
   // Connect WebSocket for the new streamer
   await connectWebSocket();
 }
+
+// Connect WebSocket for the new streamer
+console.log(`Connecting WebSocket for streamer: ${streamerList[currentStreamerIndex]}`);
+await connectWebSocket();
+
+// Fetch viewer count for the new streamer
+console.log(`Fetching viewer count for streamer: ${streamerList[currentStreamerIndex]}`);
+const response = await fetch(`https://kick.com/api/v2/channels/${streamerList[currentStreamerIndex]}`);
+const data = await response.json();
+console.log("API response:", data);
+
+try {
+  // Connect WebSocket for the new streamer
+  console.log(`Connecting WebSocket for streamer: ${streamerList[currentStreamerIndex]}`);
+  await connectWebSocket();
+} catch (error) {
+  console.error("Error connecting WebSocket:", error);
+}
+
+try {
+  // Fetch viewer count for the new streamer
+  console.log(`Fetching viewer count for streamer: ${streamerList[currentStreamerIndex]}`);
+  const response = await fetch(`https://kick.com/api/v2/channels/${streamerList[currentStreamerIndex]}`);
+  const data = await response.json();
+  console.log("API response:", data);
+} catch (error) {
+  console.error("Error fetching viewer count:", error);
+}
+
+// Update the channel name display
+console.log(`Switching to streamer: ${streamerList[currentStreamerIndex]}`);
+channelNameElement.textContent = streamerList[currentStreamerIndex];
+
