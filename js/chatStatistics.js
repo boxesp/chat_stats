@@ -380,6 +380,7 @@ async function checkOnlineStatus() {
 // Reset statistics when the page loads
 document.addEventListener("DOMContentLoaded", function () {
   resetStatistics();
+});
 
 // Increment the username count in the topUsernames map
 function incrementUsernameCount(senderUniqueId) {
@@ -416,4 +417,3 @@ function incrementMessageCount() {
   const messageCountElement = document.getElementById("message-count");
   messageCountElement.textContent = messageCount.toLocaleString();
 }
-});
