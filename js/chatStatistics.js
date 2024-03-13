@@ -212,15 +212,6 @@ function addSenderUniqueId(senderUniqueId) {
   uniqueUsernames.add(senderUniqueId);
 }
 
-// increment the username count in the topUsernames map
-function incrementUsernameCount(senderUniqueId) {
-  if (topUsernames.has(senderUniqueId)) {
-    topUsernames.set(senderUniqueId, topUsernames.get(senderUniqueId) + 1);
-  } else {
-    topUsernames.set(senderUniqueId, 1);
-  }
-}
-
 // update top usernames
 function updateTopUsernames() {
   const sortedUsernames = getSortedUsernames();
