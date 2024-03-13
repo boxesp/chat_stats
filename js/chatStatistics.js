@@ -339,6 +339,7 @@ async function fetchViewerCount() {
   }
 }
 
+// Function to switch to the next streamer
 async function switchToNextStreamer() {
   // Increment the current streamer index
   currentStreamerIndex = (currentStreamerIndex + 1) % streamerList.length;
@@ -351,4 +352,58 @@ async function switchToNextStreamer() {
 
   // Connect WebSocket for the new streamer
   await connectWebSocket();
+}
+
+// handle the WebSocket Chat Message Event
+function handleMessageEvent(event) {
+  const data = JSON.parse(event.data);
+  if (data.event === "App\\Events\\ChatMessageEvent") {
+    const messageData = JSON.parse(data.data);
+    let chatMessageSender = messageData.sender.username;
+
+    // Convert sender name to lowercase for case insensitivity
+    const sender = chatMessageSender.toLowerCase();
+
+    // Check if sender is in the excludedKickBots array
+    if (excludedKickBots.includes(sender)) {
+      // Skip processing if the sender is in the excludedKickBots
+      return;
+    }
+
+    // If not excluded, proceed with the functions
+    incrementMessageCount();
+    handleSenderData(messageData.sender);
+    updateTopUsernames();
+
+    // Update the viewer count when a new chat message is received
+    updateViewerCount(messageData.viewer_count);
+
+    // Update chat statistics for the current streamer
+    updateChatStatistics();
+  }
+}
+
+// Function to update chat statistics
+function updateChatStatistics() {
+  // Clear the existing list of top usernames
+  topUsernames.clear();
+  uniqueUsernames.clear();
+  messageCount = 0;
+  uniqueUsernamesCount = 0;
+  twoOrLessCount = 0;
+
+  // Iterate through the messages and update chat statistics for the current streamer
+  // You may need to modify this function based on how your chat statistics are calculated
+  // This is just a placeholder implementation
+  for (const [senderUniqueId, count] of topUsernames) {
+    incrementUsernameCount(senderUniqueId);
+  }
+
+  // Update the HTML elements with the latest information
+  updateHTMLElements(
+    messageCount,
+    uniqueUsernames.size,
+    getTopUsernamesWithCount(getSortedUsernames()),
+    getTwoOrLessCount()
+  );
 }
