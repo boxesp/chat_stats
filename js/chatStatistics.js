@@ -180,20 +180,6 @@ function handleSenderData(sender) {
   incrementUsernameCount(senderUniqueId);
 }
 
-async function updatePeakViewerCount(viewerCount) {
-  try {
-    if (viewerCount > peakViewerCount) {
-      peakViewerCount = viewerCount;
-
-      // Update UI with peak viewer count
-      const peakViewersElement = document.getElementById("viewer-peak");
-      peakViewersElement.textContent = peakViewerCount.toLocaleString();
-    }
-  } catch (error) {
-    console.error('Error updating peak viewer count:', error);
-  }
-}
-
 // set initial peak viewers
 const peakViewersElement = document.getElementById("viewer-peak");
 peakViewersElement.textContent = peakViewerCount.toLocaleString();
