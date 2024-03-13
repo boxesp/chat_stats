@@ -34,7 +34,7 @@ const excludedKickBots = [
 ];
 
 // kick websocket uri
-const kickWSUri =
+let kickWSUri =
   `wss://ws-us2.pusher.com/app/eb1d5f283081a78b932c?protocol=7&client=js&version=7.4.0&flash=false&channel=${streamerList[currentStreamerIndex]}`;
 let kickWS = null; // WebSocket instance
 
@@ -48,35 +48,35 @@ async function connectWebSocket() {
   kickWS = new WebSocket(kickWSUri);
 
   return new Promise((resolve, reject) => {
-// WebSocket open event listener
-kickWS.addEventListener("open", async function open() {
-  try {
-    const userData = await fetch(
-      `https://kick.com/api/v2/channels/${streamerList[currentStreamerIndex]}`
-    ).then((response) => response.json());
+    // WebSocket open event listener
+    kickWS.addEventListener("open", async function open() {
+      try {
+        const userData = await fetch(
+          `https://kick.com/api/v2/channels/${streamerList[currentStreamerIndex]}`
+        ).then((response) => response.json());
 
-    kickWS.send(
-      JSON.stringify({
-        event: "pusher:subscribe",
-        data: { auth: "", channel: `chatrooms.${userData.chatroom.id}.v2` },
-      })
-    );
+        kickWS.send(
+          JSON.stringify({
+            event: "pusher:subscribe",
+            data: { auth: "", channel: `chatrooms.${userData.chatroom.id}.v2` },
+          })
+        );
 
-    console.log(
-      "Connected to Kick.com Streamer Chat: " +
-        streamerList[currentStreamerIndex] +
-        " Chatroom ID: " +
-        userData.chatroom.id
-    );
+        console.log(
+          "Connected to Kick.com Streamer Chat: " +
+            streamerList[currentStreamerIndex] +
+            " Chatroom ID: " +
+            userData.chatroom.id
+        );
 
-    // Update the viewer count immediately after connecting
-    await fetchViewerCount();
-    setSessionStartTime(); // Set the session start time when the WebSocket connection opens
-    updateIsLiveStatus();
-  } catch (error) {
-    reject(error); // Reject the promise if there's an error
-  }
-});
+        // Update the viewer count immediately after connecting
+        await fetchViewerCount();
+        setSessionStartTime(); // Set the session start time when the WebSocket connection opens
+        updateIsLiveStatus();
+      } catch (error) {
+        reject(error); // Reject the promise if there's an error
+      }
+    });
 
     // WebSocket error event listener
     kickWS.addEventListener("error", function error(event) {
@@ -116,6 +116,9 @@ function handleMessageEvent(event) {
 
     // Update the viewer count when a new chat message is received
     updateViewerCount(messageData.viewer_count);
+
+    // Update chat statistics for the current streamer
+    updateChatStatistics();
   }
 }
 
@@ -177,6 +180,7 @@ function handleSenderData(sender) {
   incrementUsernameCount(senderUniqueId);
 }
 
+// Function to update viewer count
 async function updateViewerCount(viewerCount) {
   try {
     totalViewerCount += viewerCount;
@@ -354,35 +358,6 @@ async function switchToNextStreamer() {
   await connectWebSocket();
 }
 
-// handle the WebSocket Chat Message Event
-function handleMessageEvent(event) {
-  const data = JSON.parse(event.data);
-  if (data.event === "App\\Events\\ChatMessageEvent") {
-    const messageData = JSON.parse(data.data);
-    let chatMessageSender = messageData.sender.username;
-
-    // Convert sender name to lowercase for case insensitivity
-    const sender = chatMessageSender.toLowerCase();
-
-    // Check if sender is in the excludedKickBots array
-    if (excludedKickBots.includes(sender)) {
-      // Skip processing if the sender is in the excludedKickBots
-      return;
-    }
-
-    // If not excluded, proceed with the functions
-    incrementMessageCount();
-    handleSenderData(messageData.sender);
-    updateTopUsernames();
-
-    // Update the viewer count when a new chat message is received
-    updateViewerCount(messageData.viewer_count);
-
-    // Update chat statistics for the current streamer
-    updateChatStatistics();
-  }
-}
-
 // Function to update chat statistics
 function updateChatStatistics() {
   // Clear the existing list of top usernames
@@ -406,4 +381,188 @@ function updateChatStatistics() {
     getTopUsernamesWithCount(getSortedUsernames()),
     getTwoOrLessCount()
   );
+}
+
+// Move the catch block to an appropriate location
+try {
+  // Code that might throw an error
+} catch (error) {
+  console.error('Error updating viewer count:', error);
+}
+
+// Function to update peak viewer count
+async function updatePeakViewerCount(viewerCount) {
+try {
+  if (viewerCount > peakViewerCount) {
+    peakViewerCount = viewerCount;
+
+    // Update UI with peak viewer count
+    const peakViewersElement = document.getElementById("viewer-peak");
+    peakViewersElement.textContent = peakViewerCount.toLocaleString();
+  }
+} catch (error) {
+  console.error('Error updating peak viewer count:', error);
+}
+}
+
+// set initial peak viewers
+const peakViewersElement = document.getElementById("viewer-peak");
+peakViewersElement.textContent = peakViewerCount.toLocaleString();
+
+// Update the is_live status display
+function updateIsLiveStatus(isLive) {
+const channelLiveElement = document.getElementById("channel-live");
+
+if (isLive) {
+  channelLiveElement.textContent = " ";
+  channelLiveElement.classList.add("live");
+  channelLiveElement.classList.remove("offline");
+} else {
+  channelLiveElement.textContent = " ";
+  channelLiveElement.classList.add("offline");
+  channelLiveElement.classList.remove("live");
+}
+}
+
+// create a unique ID for the sender
+function createSenderUniqueId(id, username) {
+return `${id}-${username}`;
+}
+
+// add the sender unique ID to the set of unique usernames
+function addSenderUniqueId(senderUniqueId) {
+uniqueUsernames.add(senderUniqueId);
+}
+
+// increment the username count in the topUsernames map
+function incrementUsernameCount(senderUniqueId) {
+if (topUsernames.has(senderUniqueId)) {
+  topUsernames.set(senderUniqueId, topUsernames.get(senderUniqueId) + 1);
+} else {
+  topUsernames.set(senderUniqueId, 1);
+}
+}
+
+// update top usernames
+function updateTopUsernames() {
+const sortedUsernames = getSortedUsernames();
+const topUsernamesWithCount = getTopUsernamesWithCount(sortedUsernames);
+const twoOrLessCount = getTwoOrLessCount();
+updateHTMLElements(
+  messageCount,
+  uniqueUsernames.size,
+  topUsernamesWithCount,
+  twoOrLessCount
+);
+}
+
+// get the top usernames with their message count
+function getTopUsernamesWithCount(sortedUsernames) {
+return sortedUsernames
+  .slice(0, topListLength)
+  .map(([senderUniqueId, count]) => ({
+    username: senderUniqueId.split("-")[1],
+    count: count,
+  }));
+}
+
+function getTwoOrLessCount() {
+let twoOrLessCount = 0;
+for (let [senderUniqueId, count] of topUsernames) {
+  if (count <= 2) {
+    twoOrLessCount++;
+  }
+}
+return twoOrLessCount;
+}
+
+// sort top usernames by count in descending order
+function getSortedUsernames() {
+return Array.from(topUsernames.entries()).sort((a, b) => b[1] - a[1]);
+}
+
+// increment the message count
+function incrementMessageCount() {
+messageCount++;
+}
+
+// Update viewer count every 1 minute
+setInterval(fetchViewerCount, 1 * 10 * 1000);
+
+async function fetchViewerCount() {
+try {
+  const response = await fetch(`https://kick.com/api/v2/channels/${streamerList[currentStreamerIndex]}`);
+  const data = await response.json();
+
+  // Check if the 'livestream' object exists in the response data
+  if (data.livestream && data.livestream.viewer_count !== undefined) {
+    const viewerCount = data.livestream.viewer_count;
+    const isLive = data.livestream.is_live || false;
+
+    // Update the viewer count
+    updateViewerCount(viewerCount);
+
+    // Update the is_live status
+    updateIsLiveStatus(isLive);
+
+    if (!isLive) {
+      // Move to the next streamer if the current one is offline
+      await switchToNextStreamer();
+    }
+  } else {
+    // If 'livestream' object doesn't exist or 'viewer_count' is undefined, set viewer count to 0
+    updateViewerCount(0);
+    // Update the is_live status to false
+    updateIsLiveStatus(false);
+
+    // Move to the next streamer
+    await switchToNextStreamer();
+  }
+} catch (error) {
+  console.error("Error fetching viewer count:", error);
+}
+
+if (kickWS !== null) {
+  kickWS.addEventListener("message", handleMessageEvent);
+}
+}
+
+// Function to switch to the next streamer
+async function switchToNextStreamer() {
+// Increment the current streamer index
+currentStreamerIndex = (currentStreamerIndex + 1) % streamerList.length;
+
+// Update the channel name display
+channelNameElement.textContent = streamerList[currentStreamerIndex];
+
+// Update the kickWSUri for the new streamer
+kickWSUri = `wss://ws-us2.pusher.com/app/eb1d5f283081a78b932c?protocol=7&client=js&version=7.4.0&flash=false&channel=${streamerList[currentStreamerIndex]}`;
+
+// Connect WebSocket for the new streamer
+await connectWebSocket();
+}
+
+// Function to update chat statistics
+function updateChatStatistics() {
+// Clear the existing list of top usernames
+topUsernames.clear();
+uniqueUsernames.clear();
+messageCount = 0;
+uniqueUsernamesCount = 0;
+twoOrLessCount = 0;
+
+// Iterate through the messages and update chat statistics for the current streamer
+// You may need to modify this function based on how your chat statistics are calculated
+// This is just a placeholder implementation
+for (const [senderUniqueId, count] of topUsernames) {
+  incrementUsernameCount(senderUniqueId);
+}
+
+// Update the HTML elements with the latest information
+updateHTMLElements(
+  messageCount,
+  uniqueUsernames.size,
+  getTopUsernamesWithCount(getSortedUsernames()),
+  getTwoOrLessCount()
+);
 }
