@@ -56,14 +56,14 @@ function connectWebSocket() {
     );
     console.log(
       "Connected to Kick.com Streamer Chat: " +
-      channel +
+      streamerList[currentStreamerIndex] +
       " Chatroom ID: " +
       userData.chatroom.id
     );
     setSessionStartTime(); // Set the session start time when the WebSocket connection opens
     updateIsLiveStatus();
     await fetchViewerCount();
-  });
+});
 
   // WebSocket error event listener
   kickWS.addEventListener("error", function error(event) {
@@ -276,13 +276,6 @@ function updateSessionDuration() {
   sessionDurationElement.textContent = sessionDuration;
 }
 
-console.log(
-  "Connected to Kick.com Streamer Chat: " +
-  streamerList[currentStreamerIndex] +
-  " Chatroom ID: " +
-  userData.chatroom.id
-);
-
 async function fetchViewerCount() {
   try {
     const response = await fetch(`https://kick.com/api/v2/channels/${streamerList[currentStreamerIndex]}`);
@@ -313,4 +306,8 @@ async function fetchViewerCount() {
   } catch (error) {
     console.error("Error fetching viewer count:", error);
   }
+  
+if (kickWS !== null) {
+    kickWS.addEventListener("message", handleMessageEvent);
+}
 }
