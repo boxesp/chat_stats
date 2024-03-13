@@ -286,24 +286,6 @@ function updateSessionDuration() {
 // Periodically check online status
 setInterval(checkOnlineStatus, 30 * 1000);
 
-// Add the checkOnlineStatus function here
-async function checkOnlineStatus() {
-  try {
-    const response = await fetch(`https://kick.com/api/v2/channels/${channel}`);
-    const data = await response.json();
-    const isLive = data.livestream && data.livestream.is_live;
-
-    if (!isLive) {
-      switchToNextStreamer(); // Switch to the next streamer if offline
-    } else {
-      updateViewerCount(data.livestream.viewer_count);
-      updateIsLiveStatus(true);
-    }
-  } catch (error) {
-    console.error("Error checking online status:", error);
-  }
-}
-
 // Add a function to switch to the next streamer
 function switchToNextStreamer() {
   // Logic to switch to the next streamer goes here
