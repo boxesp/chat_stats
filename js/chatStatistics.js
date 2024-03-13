@@ -107,7 +107,7 @@ function handleMessageEvent(event) {
     // If not excluded, proceed with the functions
     incrementMessageCount();
     handleSenderData(messageData.sender);
-    updateTopUsernames();
+    updateTopUsernames(); // Update top usernames when a new message is received
   }
 }
 
@@ -290,6 +290,10 @@ setInterval(checkOnlineStatus, 30 * 1000);
 function switchToNextStreamer() {
   // Logic to switch to the next streamer goes here
   console.log('Switching to the next streamer...');
+  
+  // Reset statistics
+  resetStatistics();
+  
   // Increment the current streamer index
   currentStreamerIndex = (currentStreamerIndex + 1) % streamerChannels.length;
   // Set the channel to the next streamer
@@ -297,9 +301,6 @@ function switchToNextStreamer() {
   
   // Update the channel name element
   channelNameElement.textContent = channel; // Assuming channelNameElement is defined globally
-  
-  // Reset statistics
-  resetStatistics();
   
   // Then, reconnect WebSocket with the new streamer
   connectWebSocket();
