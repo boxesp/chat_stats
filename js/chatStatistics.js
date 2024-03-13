@@ -1,7 +1,7 @@
 import { setSessionStartTime, calculateSessionDuration } from "./timer.js";
 
 const urlParams = new URLSearchParams(window.location.search);
-let channel = urlParams.get("channel") || "xqc"; // Set default channel
+let channel = urlParams.get("channel") || "god"; // Set default channel
 const topListLength = urlParams.get("listLength") || 5;
 
 // List of streamer channels
