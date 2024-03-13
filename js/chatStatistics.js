@@ -41,7 +41,6 @@ const kickWSUri =
   "wss://ws-us2.pusher.com/app/eb1d5f283081a78b932c?protocol=7&client=js&version=7.4.0&flash=false";
 let kickWS = null; // WebSocket instance
 
-// Function to establish a WebSocket connection
 function connectWebSocket() {
   kickWS = new WebSocket(kickWSUri);
 
@@ -52,18 +51,21 @@ function connectWebSocket() {
       `https://kick.com/api/v2/channels/${channel}`
     ).then((response) => response.json());
 
+    // Send the message once the WebSocket connection is open
     kickWS.send(
       JSON.stringify({
         event: "pusher:subscribe",
         data: { auth: "", channel: `chatrooms.${userData.chatroom.id}.v2` },
       })
     );
+
     console.log(
       "Connected to Kick.com Streamer Chat: " +
       channel +
       " Chatroom ID: " +
       userData.chatroom.id
     );
+
     setSessionStartTime(); // Set the session start time when the WebSocket connection opens
     updateIsLiveStatus();
     await fetchViewerCount();
