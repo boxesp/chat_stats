@@ -81,6 +81,8 @@ function connectWebSocket() {
   // WebSocket error event listener
   kickWS.addEventListener("error", function error(event) {
     console.error("WebSocket error:", event);
+    // Attempt to reconnect after a delay
+    setTimeout(connectWebSocket, 5000);
   });
 
   // WebSocket close event listener
@@ -415,9 +417,19 @@ function resetStatistics() {
   messageCount = 0;
   uniqueUsernames.clear();
   topUsernames.clear();
-  messageCountElement.textContent = "0";
-  uniqueUsernamesElement.textContent = "0";
-  topUsernamesElement.innerHTML = "";
+  // Check if HTML elements exist before updating
+  const messageCountElement = document.getElementById("message-count");
+  const uniqueUsernamesElement = document.getElementById("unique-usernames");
+  const topUsernamesElement = document.getElementById("top-usernames");
+  if (messageCountElement) {
+    messageCountElement.textContent = "0";
+  }
+  if (uniqueUsernamesElement) {
+    uniqueUsernamesElement.textContent = "0";
+  }
+  if (topUsernamesElement) {
+    topUsernamesElement.innerHTML = "";
+  }
 }
 
 // Function to handle WebSocket Chat Message Event
