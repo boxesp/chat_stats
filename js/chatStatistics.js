@@ -1,8 +1,9 @@
 import { setSessionStartTime, calculateSessionDuration } from "./timer.js";
 
 const urlParams = new URLSearchParams(window.location.search);
-const channel = urlParams.get("channel") || "adinross";
+const streamerList = ["adinross", "streamer2", "streamer3"]; // List of streamers
 const topListLength = urlParams.get("listLength") || 5;
+let currentStreamerIndex = 0;
 
 // channel name page element
 const channelNameElement = document.getElementById("channel-name");
@@ -302,4 +303,34 @@ function updateSessionDuration() {
   sessionDurationElement.textContent = sessionDuration;
 }
 
-connectWebSocket();
+async function fetchViewerCount() {
+  try {
+    const response = await fetch(`https://kick.com/api/v2/channels/${streamerList[currentStreamerIndex]}`);
+    const data = await response.json();
+
+    // Check if the 'livestream' object exists in the response data
+    if (data.livestream && data.livestream.viewer_count !== undefined) {
+      const viewerCount = data.livestream.viewer_count;
+      const isLive = data.livestream.is_live || false;
+
+      // Update the viewer count
+      updateViewerCount(viewerCount);
+
+      // Update the is_live status
+      updateIsLiveStatus(isLive);
+
+      if (!isLive) {
+        // Move to the next streamer if the current one is offline
+        currentStreamerIndex = (currentStreamerIndex + 1) % streamerList.length;
+        connectWebSocket(); // Reconnect WebSocket for the new streamer
+      }
+    } else {
+      // If 'livestream' object doesn't exist or 'viewer_count' is undefined, set viewer count to 0
+      updateViewerCount(0);
+      // Update the is_live status to false
+      updateIsLiveStatus(false);
+    }
+  } catch (error) {
+    console.error("Error fetching viewer count:", error);
+  }
+}
