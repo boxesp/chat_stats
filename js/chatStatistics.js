@@ -375,3 +375,54 @@ async function fetchViewerCount() {
     // Retry or handle error as needed
   }
 }
+
+// Update the viewer count function to handle live viewers, average viewers, and peak viewers
+function updateViewerCount(viewerCount) {
+  const liveViewersElement = document.getElementById("live-viewers");
+  const averageViewersElement = document.getElementById("average-viewers");
+
+  if (liveViewersElement && averageViewersElement) {
+    if (viewerCount !== undefined) {
+      // Update live viewers count
+      liveViewersElement.textContent = viewerCount.toLocaleString();
+
+      // Update average viewers count (if available)
+      const averageViewerCount = calculateAverageViewerCount(viewerCount);
+      averageViewersElement.textContent = averageViewerCount.toLocaleString();
+
+      // Update peak viewer count
+      updatePeakViewerCount(viewerCount);
+    } else {
+      // Handle undefined viewer count (e.g., when stream is offline)
+      liveViewersElement.textContent = "0";
+      averageViewersElement.textContent = "0";
+    }
+  } else {
+    console.error("Live viewers or average viewers element not found.");
+  }
+}
+
+// Add error handling and retry logic to fetchViewerCount function
+async function fetchViewerCount() {
+  try {
+    const response = await fetch(`https://kick.com/api/v2/channels/${streamerList[currentStreamerIndex]}`);
+    const data = await response.json();
+
+    // Extract viewer count from API response and update
+    const viewerCount = data.livestream && data.livestream.viewer_count !== undefined ? data.livestream.viewer_count : 0;
+    updateViewerCount(viewerCount);
+
+    // Continue WebSocket connection after updating viewer count
+    if (kickWS !== null) {
+      kickWS.addEventListener("message", handleMessageEvent);
+    }
+
+    // Move to the next streamer after updating viewer count
+    await switchToNextStreamer();
+  } catch (error) {
+    console.error("Error fetching viewer count:", error);
+    // Retry or handle error as needed
+    // Move to the next streamer even in case of error
+    await switchToNextStreamer();
+  }
+}
