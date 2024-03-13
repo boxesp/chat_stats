@@ -346,7 +346,7 @@ function switchToNextStreamer() {
   // For example, you can update the channel variable with the next streamer's name
   // You can implement your logic to fetch the next online streamer from a list or database
   // For demonstration purposes, I'm just assigning a default streamer name "god"
-  channel = "god";
+  channel = "adinross";
   // Then, reconnect WebSocket with the new streamer
   connectWebSocket();
 }
