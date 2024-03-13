@@ -327,15 +327,6 @@ function updateTopUsernames() {
   });
 }
 
-// Increment the message count
-function incrementMessageCount() {
-  messageCount++;
-
-  // Update total message count
-  const messageCountElement = document.getElementById("message-count");
-  messageCountElement.textContent = messageCount.toLocaleString();
-}
-
 // HTML elements for statistics display
 let messageCountElement, uniqueUsernamesElement, topUsernamesElement;
 
