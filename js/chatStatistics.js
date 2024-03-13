@@ -48,33 +48,35 @@ async function connectWebSocket() {
   kickWS = new WebSocket(kickWSUri);
 
   return new Promise((resolve, reject) => {
-    // WebSocket open event listener
-    kickWS.addEventListener("open", async function open() {
-      try {
-        const userData = await fetch(
-          `https://kick.com/api/v2/channels/${streamerList[currentStreamerIndex]}`
-        ).then((response) => response.json());
+// WebSocket open event listener
+kickWS.addEventListener("open", async function open() {
+  try {
+    const userData = await fetch(
+      `https://kick.com/api/v2/channels/${streamerList[currentStreamerIndex]}`
+    ).then((response) => response.json());
 
-        kickWS.send(
-          JSON.stringify({
-            event: "pusher:subscribe",
-            data: { auth: "", channel: `chatrooms.${userData.chatroom.id}.v2` },
-          })
-        );
-        console.log(
-          "Connected to Kick.com Streamer Chat: " +
-          streamerList[currentStreamerIndex] +
-          " Chatroom ID: " +
-          userData.chatroom.id
-        );
-        setSessionStartTime(); // Set the session start time when the WebSocket connection opens
-        updateIsLiveStatus();
-        await fetchViewerCount();
-        resolve(); // Resolve the promise once WebSocket connection is established
-      } catch (error) {
-        reject(error); // Reject the promise if there's an error
-      }
-    });
+    kickWS.send(
+      JSON.stringify({
+        event: "pusher:subscribe",
+        data: { auth: "", channel: `chatrooms.${userData.chatroom.id}.v2` },
+      })
+    );
+
+    console.log(
+      "Connected to Kick.com Streamer Chat: " +
+        streamerList[currentStreamerIndex] +
+        " Chatroom ID: " +
+        userData.chatroom.id
+    );
+
+    // Update the viewer count immediately after connecting
+    await fetchViewerCount();
+    setSessionStartTime(); // Set the session start time when the WebSocket connection opens
+    updateIsLiveStatus();
+  } catch (error) {
+    reject(error); // Reject the promise if there's an error
+  }
+});
 
     // WebSocket error event listener
     kickWS.addEventListener("error", function error(event) {
@@ -111,6 +113,9 @@ function handleMessageEvent(event) {
     incrementMessageCount();
     handleSenderData(messageData.sender);
     updateTopUsernames();
+
+    // Update the viewer count when a new chat message is received
+    updateViewerCount(messageData.viewer_count);
   }
 }
 
