@@ -42,6 +42,11 @@ const kickWSUri =
 let kickWS = null; // WebSocket instance
 
 function connectWebSocket() {
+  if (kickWS && kickWS.readyState === WebSocket.OPEN) {
+    // If WebSocket connection is already open, do nothing
+    return;
+  }
+
   kickWS = new WebSocket(kickWSUri);
 
   // WebSocket open event listener
