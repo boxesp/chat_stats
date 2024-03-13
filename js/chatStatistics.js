@@ -162,15 +162,6 @@ document.addEventListener("DOMContentLoaded", async function () {
   kickWS.addEventListener("message", handleMessageEvent);
 });
 
-// handle the message sender data
-function handleSenderData(sender) {
-  const senderId = sender.id;
-  const senderUsername = sender.username;
-  const senderUniqueId = createSenderUniqueId(senderId, senderUsername);
-  addSenderUniqueId(senderUniqueId);
-  incrementUsernameCount(senderUniqueId);
-}
-
 // set initial peak viewers
 const peakViewersElement = document.getElementById("viewer-peak");
 peakViewersElement.textContent = peakViewerCount;
