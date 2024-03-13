@@ -33,48 +33,58 @@ const excludedKickBots = [
   "kickbot"
 ];
 
-// kick websocket uri
-const kickWSUri =
-  `wss://ws-us2.pusher.com/app/eb1d5f283081a78b932c?protocol=7&client=js&version=7.4.0&flash=false&channel=${streamerList[currentStreamerIndex]}`;
-let kickWS = null; // WebSocket instance
-
 // Function to establish a WebSocket connection
-function connectWebSocket() {
-  kickWS = new WebSocket(kickWSUri);
+async function connectWebSocket() {
+  // Close the existing WebSocket connection if it's open
+  if (kickWS !== null && kickWS.readyState === WebSocket.OPEN) {
+    kickWS.close();
+  }
 
-  // WebSocket open event listener
-  kickWS.addEventListener("open", async function open() {
-    const userData = await fetch(
-      `https://kick.com/api/v2/channels/${streamerList[currentStreamerIndex]}`
-    ).then((response) => response.json());
+  kickWS = new WebSocket(
+    `wss://ws-us2.pusher.com/app/eb1d5f283081a78b932c?protocol=7&client=js&version=7.4.0&flash=false&channel=${streamerList[currentStreamerIndex]}`
+  );
 
-    kickWS.send(
-      JSON.stringify({
-        event: "pusher:subscribe",
-        data: { auth: "", channel: `chatrooms.${userData.chatroom.id}.v2` },
-      })
-    );
-    console.log(
-      "Connected to Kick.com Streamer Chat: " +
-      streamerList[currentStreamerIndex] +
-      " Chatroom ID: " +
-      userData.chatroom.id
-    );
-    setSessionStartTime(); // Set the session start time when the WebSocket connection opens
-    updateIsLiveStatus();
-    await fetchViewerCount();
-  });
+  return new Promise((resolve, reject) => {
+    // WebSocket open event listener
+    kickWS.addEventListener("open", async function open() {
+      try {
+        const userData = await fetch(
+          `https://kick.com/api/v2/channels/${streamerList[currentStreamerIndex]}`
+        ).then((response) => response.json());
 
-  // WebSocket error event listener
-  kickWS.addEventListener("error", function error(event) {
-    console.error("WebSocket error:", event);
-  });
+        kickWS.send(
+          JSON.stringify({
+            event: "pusher:subscribe",
+            data: { auth: "", channel: `chatrooms.${userData.chatroom.id}.v2` },
+          })
+        );
+        console.log(
+          "Connected to Kick.com Streamer Chat: " +
+          streamerList[currentStreamerIndex] +
+          " Chatroom ID: " +
+          userData.chatroom.id
+        );
+        setSessionStartTime(); // Set the session start time when the WebSocket connection opens
+        updateIsLiveStatus();
+        await fetchViewerCount();
+        resolve(); // Resolve the promise once WebSocket connection is established
+      } catch (error) {
+        reject(error); // Reject the promise if there's an error
+      }
+    });
 
-  // WebSocket close event listener
-  kickWS.addEventListener("close", function close(event) {
-    console.log("WebSocket connection closed:", event);
-    // Attempt to reconnect after a delay
-    setTimeout(connectWebSocket, 5000);
+    // WebSocket error event listener
+    kickWS.addEventListener("error", function error(event) {
+      console.error("WebSocket error:", event);
+      reject(event); // Reject the promise if there's an error
+    });
+
+    // WebSocket close event listener
+    kickWS.addEventListener("close", function close(event) {
+      console.log("WebSocket connection closed:", event);
+      // Attempt to reconnect after a delay
+      setTimeout(connectWebSocket, 5000);
+    });
   });
 }
 
