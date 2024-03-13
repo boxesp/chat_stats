@@ -299,7 +299,7 @@ function incrementMessageCount() {
 }
 
 // Update viewer count every 1 minute
-setInterval(fetchViewerCount, 1 * 60 * 1000);
+setInterval(fetchViewerCount, 1 * 10 * 1000);
 
 async function fetchViewerCount() {
   try {
