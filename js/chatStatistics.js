@@ -178,8 +178,13 @@ peakViewersElement.textContent = peakViewerCount;
 async function fetchViewerCount() {
   try {
     const response = await fetch(`https://kick.com/api/v2/channels/${channel}`);
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
     const data = await response.json();
-
+    if (!data || !data.livestream) {
+      throw new Error('Invalid response format');
+    }
     const viewerCount = data.livestream.viewer_count || 0;
     const isLive = data.livestream.is_live || false;
 
@@ -201,9 +206,9 @@ async function fetchViewerCount() {
       }
     }
   } catch (error) {
-    console.error("Error fetching viewer count:", error
-    );
+    console.error("Error fetching viewer count:", error);
   }
+}
   
   // Function to fetch a new channel from your list
   async function fetchNewChannel() {
@@ -247,4 +252,3 @@ async function fetchViewerCount() {
   
   // establish initial Kick WebSocket connection
   connectWebSocket();
-}
