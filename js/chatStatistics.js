@@ -311,11 +311,6 @@ setInterval(fetchViewerCount, 1 * 60 * 1000);
 // update the session duration
 setInterval(updateSessionDuration, 1000);
 
-setInterval(() => {
-  saveUniqueUsernamesToDatabase(channel, uniqueUsernames);
-  saveTopUsernamesToDatabase(channel, topUsernames);
-}, 1 * 30 * 1000);
-
 function updateSessionDuration() {
   const sessionDuration = calculateSessionDuration();
   const sessionDurationElement = document.getElementById("session-duration");
