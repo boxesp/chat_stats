@@ -1,21 +1,20 @@
 import { setSessionStartTime, calculateSessionDuration } from "./timer.js";
 
 const urlParams = new URLSearchParams(window.location.search);
-const channel = urlParams.get("channel") || "iziprime";
+const channel = urlParams.get("channel") || "odablock";
 const topListLength = urlParams.get("listLength") || 5;
 
 // channel name page element
 const channelNameElement = document.getElementById("channel-name");
 channelNameElement.textContent = String(channel);
 
+let messageCount = 0;
 const uniqueUsernames = new Set();
 const topUsernames = new Map();
-let messageCount = 0;
 let totalViewerCount = 0;
 let peakViewerCount = 0;
 let updateCount = 0;
 let twoOrLessCount = 0;
-let uniqueUsernamesCount = 0;
 
 const excludedKickBots = [
   "babblechat",
@@ -55,9 +54,9 @@ function connectWebSocket() {
     );
     console.log(
       "Connected to Kick.com Streamer Chat: " +
-      channel +
-      " Chatroom ID: " +
-      userData.chatroom.id
+        channel +
+        " Chatroom ID: " +
+        userData.chatroom.id
     );
     setSessionStartTime(); // Set the session start time when the WebSocket connection opens
     updateIsLiveStatus();
@@ -100,7 +99,7 @@ function handleMessageEvent(event) {
   }
 }
 
-// Update the HTML elements with the latest information
+// update the HTML elements with the latest information
 function updateHTMLElements(
   messageCount,
   uniqueUsernamesCount,
@@ -113,7 +112,6 @@ function updateHTMLElements(
   const topUsernamesElement = document.getElementById("top-usernames");
   const twoOrLessElement = document.getElementById("2x-usernames");
 
-  // Check if HTML elements exist before updating
   // Update the HTML elements with the latest information
   messageCountElement.textContent = messageCount.toLocaleString();
   uniqueUsernamesElement.textContent = uniqueUsernamesCount.toLocaleString();
@@ -132,7 +130,7 @@ function updateHTMLElements(
     listItem.appendChild(usernameSpan);
 
     const countSpan = document.createElement("span");
-    countSpan.textContent = count ? count.toLocaleString() : "";
+    countSpan.textContent = count.toLocaleString();
     countSpan.className = "messageCount"; // Assign 'messageCount' as the class name
     listItem.appendChild(countSpan);
 
@@ -140,9 +138,8 @@ function updateHTMLElements(
   });
 }
 
-
-// Make sure HTML elements are loaded before updating
-document.addEventListener("DOMContentLoaded", async function () {
+// make sure HTML elements are loaded before updated
+document.addEventListener("DOMContentLoaded", function () {
   kickWS.addEventListener("message", handleMessageEvent);
 });
 
@@ -155,28 +152,25 @@ function handleSenderData(sender) {
   incrementUsernameCount(senderUniqueId);
 }
 
-async function updateViewerCount(viewerCount) {
-  try {
-    totalViewerCount += viewerCount;
+// update the concurrent viewer count
+function updateViewerCount(viewerCount) {
+  totalViewerCount += viewerCount;
+  updateCount++;
+  const averageViewerCount = totalViewerCount / updateCount;
+  const viewerCountElement = document.getElementById("viewer-count");
+  const viewerAverageElement = document.getElementById("viewer-average");
+  viewerCountElement.textContent = viewerCount.toLocaleString();
+  viewerAverageElement.textContent = Math.round(averageViewerCount).toLocaleString();
+  // call peak viewer count check
+  updatePeakViewerCount(viewerCount);
+  console.log("Current Viewer Count for " + channel + ": " + viewerCount);
+}
 
-    // Increment update count
-    updateCount++;
-
-    // Calculate new average viewer count
-    const averageViewerCount = updateCount > 0 ? totalViewerCount / updateCount : 0;
-
-    // Update UI with viewer count
-    const viewerCountElement = document.getElementById("viewer-count");
-    viewerCountElement.textContent = viewerCount ? viewerCount.toLocaleString() : "0";
-
-    // Update UI with average viewer count
-    const viewerAverageElement = document.getElementById("viewer-average");
-    viewerAverageElement.textContent = Math.round(averageViewerCount).toLocaleString();
-
-    // Update peak viewer count
-    await updatePeakViewerCount(viewerCount);
-  } catch (error) {
-    console.error('Error updating viewer count:', error);
+function updatePeakViewerCount(viewerCount) {
+  if (viewerCount > peakViewerCount) {
+    peakViewerCount = viewerCount;
+    document.getElementById("viewer-peak").textContent =
+      peakViewerCount.toLocaleString();
   }
 }
 
@@ -190,22 +184,14 @@ async function fetchViewerCount() {
     const response = await fetch(`https://kick.com/api/v2/channels/${channel}`);
     const data = await response.json();
 
-    // Check if the 'livestream' object exists in the response data
-    if (data.livestream && data.livestream.viewer_count !== undefined) {
-      const viewerCount = data.livestream.viewer_count;
-      const isLive = data.livestream.is_live || false;
+    const viewerCount = data.livestream.viewer_count || 0;
+    const isLive = data.livestream.is_live || false;
 
-      // Update the viewer count
-      updateViewerCount(viewerCount);
+    // Update the viewer count
+    updateViewerCount(viewerCount);
 
-      // Update the is_live status
-      updateIsLiveStatus(isLive);
-    } else {
-      // If 'livestream' object doesn't exist or 'viewer_count' is undefined, set viewer count to 0
-      updateViewerCount(0);
-      // Update the is_live status to false
-      updateIsLiveStatus(false);
-    }
+    // Update the is_live status
+    updateIsLiveStatus(isLive);
   } catch (error) {
     console.error("Error fetching viewer count:", error);
   }
@@ -216,11 +202,11 @@ function updateIsLiveStatus(isLive) {
   const channelLiveElement = document.getElementById("channel-live");
 
   if (isLive) {
-    channelLiveElement.textContent = " ";
+    channelLiveElement.textContent = "Live";
     channelLiveElement.classList.add("live");
     channelLiveElement.classList.remove("offline");
   } else {
-    channelLiveElement.textContent = " ";
+    channelLiveElement.textContent = "Offline";
     channelLiveElement.classList.add("offline");
     channelLiveElement.classList.remove("live");
   }
@@ -274,7 +260,7 @@ function getTwoOrLessCount() {
   for (let [senderUniqueId, count] of topUsernames) {
     if (count <= 2) {
       twoOrLessCount++;
-
+      
     }
   }
   return twoOrLessCount;
@@ -302,17 +288,5 @@ function updateSessionDuration() {
   sessionDurationElement.textContent = sessionDuration;
 }
 
-// Update peak viewer count
-async function updatePeakViewerCount(viewerCount) {
-  try {
-    if (viewerCount > peakViewerCount) {
-      peakViewerCount = viewerCount;
-      const peakViewersElement = document.getElementById("viewer-peak");
-      peakViewersElement.textContent = peakViewerCount.toLocaleString();
-    }
-  } catch (error) {
-    console.error('Error updating peak viewer count:', error);
-  }
-}
-
+// establish initial Kick WebSocket connection
 connectWebSocket();
